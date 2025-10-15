@@ -1,13 +1,30 @@
+import 'dart:developer';
+
 import 'package:email_app/constants/app_string.dart';
 import 'package:email_app/constants/app_colors.dart';
+import 'package:email_app/service/auth_service.dart';
+import 'package:email_app/state/auth_bloc/auth_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is GoogleSignInSuccess) {
+          context.go('/home');
+        }else if (state is GoogleSignInFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error)),
+          );
+        }
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
@@ -39,13 +56,20 @@ class LoginScreen extends StatelessWidget {
                   style: const TextStyle(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 60),
-
+                ElevatedButton(onPressed: (){
+                  log(FirebaseAuth.instance.currentUser!.uid.toString());
+                }, child: Text("Get Uid")
+                ),
+                 const SizedBox(height: 20),
                 // Google Sign-In Button
+
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<AuthBloc>().add(GoogleSignInEvent());
+                    },
                     icon: Image.asset(
                       'assets/google_logo.png',
                       height: 24,
@@ -90,7 +114,7 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      ),)
     );
   }
 }

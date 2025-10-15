@@ -1,9 +1,19 @@
-import 'package:email_app/di/di.dart';
-import 'package:email_app/view/login_screen/login_screen.dart';
+import 'package:email_app/constants/app_theme.dart';
+import 'package:email_app/firebase_options.dart';
+import 'package:email_app/router/app_router.dart';
+import 'package:email_app/state/auth_bloc/auth_bloc.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main()async {
-  await initializeDependencies();
+  
+  WidgetsFlutterBinding.ensureInitialized();
+   // await initializeDependencies();
+   await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 
@@ -12,12 +22,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: LoginScreen(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => AuthBloc(),
+        ),
+        
+      ],
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        title: 'Email App',
+        themeMode: ThemeMode.dark, 
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        routerConfig: appRouter,
+      )
     );
   }
 }

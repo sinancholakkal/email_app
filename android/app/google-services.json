@@ -12,7 +12,20 @@
           "package_name": "com.android.email_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1022858960823-fd21qm2202qmpdm7394o2q9enper5ot1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.email_app",
+            "certificate_hash": "d2ea3da823b07b527204d96d52af1b3d89f99057"
+          }
+        },
+        {
+          "client_id": "1022858960823-9th1q1muengmh7hftk1bapv543fcu07i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAoDr8Yj0smgSIYZPWa2cdXhcgt8AQrB4c"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1022858960823-9th1q1muengmh7hftk1bapv543fcu07i.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1022858960823-9plah1n5athv829rd71pdi2784lrheos.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.emailApp"
+              }
+            }
+          ]
         }
       }
     }
