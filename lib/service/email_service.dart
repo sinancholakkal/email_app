@@ -79,8 +79,6 @@
 //     }
 //   }
 
-
-
 // /// Fetches and decodes the full content of a single email.
 // Future<void> fetchEmailDetails(String accessToken, String messageId) async {
 //   final url = Uri.parse('https://gmail.googleapis.com/gmail/v1/users/me/messages/$messageId');
@@ -121,10 +119,10 @@
 //       if (part != null) {
 //         // The body data is Base64 encoded
 //         final String encodedBody = part['body']['data'];
-        
+
 //         // Decode the Base64 string
 //         final List<int> decodedBytes = base64Url.decode(encodedBody);
-        
+
 //         // Convert the decoded bytes to a readable string
 //         body = utf8.decode(decodedBytes);
 //       }
@@ -133,7 +131,6 @@
 //       final String encodedBody = payload['body']['data'];
 //       body = utf8.decode(base64Url.decode(encodedBody));
 //     }
-
 
 //     log('--- ✅ Email Details Fetched ---');
 //     log('Subject: $subject');
@@ -146,7 +143,6 @@
 // }
 // }
 
-
 import 'dart:convert';
 import 'dart:developer';
 import 'package:email_app/model/email_model.dart';
@@ -157,22 +153,25 @@ class EmailService {
   final String nextPageToken = "";
   // 1. CHANGE: The main function now returns a list of Email objects.
   // It fetches the inbox and then gets the details for each message.
-  Future<Map<String, dynamic>> fetchInboxEmails({int maxResults = 10,String nextPageToken = ""}) async {
+  Future<Map<String, dynamic>> fetchInboxEmails({
+    int maxResults = 10,
+    String nextPageToken = "",
+  }) async {
     final accessToken = await TokenService().getAccessToken();
     if (accessToken == null) {
       log("Access Token is null. Cannot fetch emails.");
       return {}; // Return an empty list if there's no token
     }
     Uri url;
-  
-    if(nextPageToken.isNotEmpty){
+
+    if (nextPageToken.isNotEmpty) {
       url = Uri.parse(
         'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10&pageToken=$nextPageToken',
       );
-    }else{
-     url = Uri.parse(
-      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10',
-    );
+    } else {
+      url = Uri.parse(
+        'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10',
+      );
     }
 
     final response = await http.get(
@@ -186,7 +185,7 @@ class EmailService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       final List<dynamic> messages = data['messages'] ?? [];
-     nextPageToken = data['nextPageToken'] ?? "";
+      nextPageToken = data['nextPageToken'] ?? "";
 
       // 2. CHANGE: Efficiently fetch all email details concurrently.
       final List<Future<Email?>> emailFutures = messages
@@ -211,7 +210,9 @@ class EmailService {
   // 4. CHANGE: This now returns a single Email object or null if it fails.
   // It's used by the main fetchInboxEmails function.
   Future<Email?> fetchEmailDetails(String accessToken, String messageId) async {
-    final url = Uri.parse('https://gmail.googleapis.com/gmail/v1/users/me/messages/$messageId');
+    final url = Uri.parse(
+      'https://gmail.googleapis.com/gmail/v1/users/me/messages/$messageId',
+    );
     final response = await http.get(
       url,
       headers: {
@@ -225,59 +226,76 @@ class EmailService {
       // Use the new private helper to do the parsing
       return _parseEmailDetailsFromJson(data);
     } else {
-      log('Failed to fetch details for message ID $messageId. Status: ${response.statusCode}');
+      log(
+        'Failed to fetch details for message ID $messageId. Status: ${response.statusCode}',
+      );
       return null;
     }
   }
 
   // 3. NEW: A private helper to parse the JSON into an Email model.
   // This keeps your code clean and reuses the parsing logic you created.
+  // In EmailService class
   Email _parseEmailDetailsFromJson(Map<String, dynamic> jsonData) {
+    // ... (id, threadId, snippet, and header extraction logic remains the same) ...
     final String id = jsonData['id'] ?? '';
     final String threadId = jsonData['threadId'] ?? '';
     final String snippet = jsonData['snippet'] ?? '';
-
     final payload = jsonData['payload'] as Map<String, dynamic>;
     final headers = payload['headers'] as List<dynamic>;
-
-    String from = '';
-    String subject = '';
-    String dateStr = '';
+    String from = '', subject = '', dateStr = '', to = '';
 
     for (var header in headers) {
       final name = header['name']?.toLowerCase();
       if (name == 'from') from = header['value'] ?? '';
       if (name == 'subject') subject = header['value'] ?? '';
       if (name == 'date') dateStr = header['value'] ?? '';
+      if (name == 'to') to = header['value'] ?? '';
     }
+
+    // --- START OF UPDATED BODY LOGIC ---
 
     String decodedBody = '';
     bool isHtml = false;
-    
-    // Logic to find and decode the body
-    if (payload.containsKey('parts')) {
-        final parts = payload['parts'] as List;
-        final textPart = parts.firstWhere(
-            (part) => part['mimeType'] == 'text/plain',
-            orElse: () => parts.firstWhere(
-                (part) => part['mimeType'] == 'text/html',
-                orElse: () => null,
-            ),
-        );
 
-        if (textPart != null) {
-            final encodedBody = textPart['body']['data'];
-            isHtml = textPart['mimeType'] == 'text/html';
-            if (encodedBody != null) {
-                decodedBody = utf8.decode(base64Url.decode(encodedBody));
-            }
+    // Check if the email has multiple parts
+    if (payload.containsKey('parts')) {
+      final parts = payload['parts'] as List;
+
+      // 1. Look for the HTML part FIRST
+      final htmlPart = parts.firstWhere(
+        (part) => part['mimeType'] == 'text/html',
+        orElse: () => null, // Return null if not found
+      );
+
+      if (htmlPart != null) {
+        final encodedBody = htmlPart['body']['data'];
+        isHtml = true;
+        if (encodedBody != null) {
+          decodedBody = utf8.decode(base64Url.decode(encodedBody));
         }
+      } else {
+        // 2. If no HTML part, fall back to the plain text part
+        final plainPart = parts.firstWhere(
+          (part) => part['mimeType'] == 'text/plain',
+          orElse: () => null,
+        );
+        if (plainPart != null) {
+          final encodedBody = plainPart['body']['data'];
+          isHtml = false;
+          if (encodedBody != null) {
+            decodedBody = utf8.decode(base64Url.decode(encodedBody));
+          }
+        }
+      }
     } else if (payload.containsKey('body') && payload['body']['data'] != null) {
-        final encodedBody = payload['body']['data'];
-        isHtml = payload['mimeType'] == 'text/html';
-        decodedBody = utf8.decode(base64Url.decode(encodedBody));
+      // This handles simple emails that don't have multiple parts
+      final encodedBody = payload['body']['data'];
+      isHtml = payload['mimeType'] == 'text/html';
+      decodedBody = utf8.decode(base64Url.decode(encodedBody));
     }
 
+    // --- END OF UPDATED BODY LOGIC ---
 
     final DateTime date = DateTime.tryParse(dateStr) ?? DateTime.now();
 
@@ -286,7 +304,7 @@ class EmailService {
       threadId: threadId,
       snippet: snippet,
       from: from,
-      to: '', // You can add logic to parse the 'To' header if needed
+      to: to,
       subject: subject,
       date: date,
       body: decodedBody,

@@ -17,21 +17,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-    late ScrollController _controller;
+  late ScrollController _controller;
   bool isLoading = false;
   List<Email> datas = [];
   int pageCount = 10;
   @override
   void initState() {
-    EmailService().fetchInboxEmails();
+    //EmailService().fetchInboxEmails();
     context.read<EmailBloc>().add(LoadDataEvent());
     _controller = ScrollController();
     _controller.addListener(() {
       if (_controller.position.maxScrollExtent * 0.9 <=
               _controller.position.pixels &&
           !isLoading) {
-            log("Loading more data");
+        log("Loading more data");
         context.read<EmailBloc>().add(LoadDataEvent());
       }
     });
@@ -100,13 +99,19 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             IconButton(
-              icon: Icon(Icons.search, color: theme.appBarTheme.foregroundColor),
+              icon: Icon(
+                Icons.search,
+                color: theme.appBarTheme.foregroundColor,
+              ),
               onPressed: () {
                 // Search functionality
               },
             ),
             IconButton(
-              icon: Icon(Icons.logout, color: theme.appBarTheme.foregroundColor),
+              icon: Icon(
+                Icons.logout,
+                color: theme.appBarTheme.foregroundColor,
+              ),
               onPressed: () {
                 context.read<AuthBloc>().add(GoogleSignOutEvent());
               },
@@ -115,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: RefreshIndicator(
           onRefresh: () async {
-           // context.read<EmailBloc>().add(FetchAllEmailsEvent());
+            context.read<EmailBloc>().add(RefreshDataEvent());
           },
           child: _buildEmailList(),
         ),
@@ -126,17 +131,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildEmailList() {
     return BlocConsumer<EmailBloc, EmailState>(
       listener: (context, state) {
-        if(state is MoreDataLoading){
-            isLoading = state.isLoading;
-          }else if(state is LoadedDataState){
-            isLoading = state.isLoading;
-            datas = state.datas;
-          }
+        if (state is MoreDataLoading) {
+          isLoading = state.isLoading;
+        } else if (state is LoadedDataState) {
+          isLoading = state.isLoading;
+          datas = state.datas;
+        }
       },
       builder: (context, state) {
-         if(state is InitialLoading){
-            return Center(child: CircularProgressIndicator());
-          }
+        if (state is InitialLoading) {
+          return Center(child: CircularProgressIndicator());
+        }
 
         // if (state is AllEmailsLoadedState) {
         //   if (state.emails.isEmpty) {
@@ -164,76 +169,71 @@ class _HomeScreenState extends State<HomeScreen> {
         //     );
         //   }
 
-          return ListView.builder(
-            controller: _controller,
-            padding: const EdgeInsets.only(top: 8, bottom: 100),
-            itemCount: datas.length + (isLoading ? 1 : 0),
-            itemBuilder: (context, index) {
-              // Show loading indicator at bottom
-              if (index == datas.length) {
-                return Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Center(
-                    child: CircularProgressIndicator(color: Colors.blue[400]),
-                  ),
-                );
-              }
-
-              final email = datas[index];
+        return ListView.builder(
+          controller: _controller,
+          padding: const EdgeInsets.only(top: 8, bottom: 100),
+          itemCount: datas.length + (isLoading ? 1 : 0),
+          itemBuilder: (context, index) {
+            // Show loading indicator at bottom
+            if (index == datas.length) {
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                // Only animate first 5 items for better performance
-                child: BuildEmaiCard(
-                  email: email,
-                  index: index,
-                  enableAnimation: index < 5, // Only animate first 5 items
+                padding: const EdgeInsets.all(24.0),
+                child: Center(
+                  child: CircularProgressIndicator(color: Colors.blue[400]),
                 ),
               );
-            },
-          );
-        }
+            }
 
-        // if (state is AllEmailsErrorState) {
-        //   return Center(
-        //     child: Column(
-        //       mainAxisAlignment: MainAxisAlignment.center,
-        //       children: [
-        //         Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
-        //         const SizedBox(height: 16),
-        //         Text(
-        //           'Error loading emails',
-        //           style: TextStyle(
-        //             fontSize: 18,
-        //             color: Colors.grey[400],
-        //             fontWeight: FontWeight.w500,
-        //           ),
-        //         ),
-        //         const SizedBox(height: 8),
-        //         Text(
-        //           state.error,
-        //           style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-        //           textAlign: TextAlign.center,
-        //         ),
-        //         const SizedBox(height: 24),
-        //         ElevatedButton.icon(
-        //           onPressed: () {
-        //             context.read<EmailBloc>().add(FetchAllEmailsEvent());
-        //           },
-        //           icon: const Icon(Icons.refresh),
-        //           label: const Text('Retry'),
-        //         ),
-        //       ],
-        //     ),
-        //   );
-        // }
+            final email = datas[index];
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              // Only animate first 5 items for better performance
+              child: BuildEmaiCard(
+                email: email,
+                index: index,
+                enableAnimation: index < 5, // Only animate first 5 items
+              ),
+            );
+          },
+        );
+      },
 
-        // Default empty state
-        //return Container();
-    
-      
+      // if (state is AllEmailsErrorState) {
+      //   return Center(
+      //     child: Column(
+      //       mainAxisAlignment: MainAxisAlignment.center,
+      //       children: [
+      //         Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+      //         const SizedBox(height: 16),
+      //         Text(
+      //           'Error loading emails',
+      //           style: TextStyle(
+      //             fontSize: 18,
+      //             color: Colors.grey[400],
+      //             fontWeight: FontWeight.w500,
+      //           ),
+      //         ),
+      //         const SizedBox(height: 8),
+      //         Text(
+      //           state.error,
+      //           style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+      //           textAlign: TextAlign.center,
+      //         ),
+      //         const SizedBox(height: 24),
+      //         ElevatedButton.icon(
+      //           onPressed: () {
+      //             context.read<EmailBloc>().add(FetchAllEmailsEvent());
+      //           },
+      //           icon: const Icon(Icons.refresh),
+      //           label: const Text('Retry'),
+      //         ),
+      //       ],
+      //     ),
+      //   );
+      // }
+
+      // Default empty state
+      //return Container();
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/view/home_screen/data/data.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class BuildEmaiCard extends StatelessWidget {
   const BuildEmaiCard({
@@ -84,7 +85,7 @@ class BuildEmaiCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            log('Tapped email: ${email.subject}');
+           context.push('/email_detail', extra: email);
           },
           child: Padding(
             padding: const EdgeInsets.all(16),

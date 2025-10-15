@@ -31,5 +31,11 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
         //emit(AllEmailsErrorState(error: e.toString()));
       }
     });
+    on<RefreshDataEvent>((event, emit)async {
+      emit(InitialLoading());
+     emails.clear();
+     nextPageToken = "";
+     add(LoadDataEvent());
+    });
   }
 }
