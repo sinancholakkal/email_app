@@ -177,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -186,197 +187,480 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: theme.appBarTheme.backgroundColor,
-          title: Text(
-            'Inbox',
-            style: TextStyle(
-              color: theme.appBarTheme.foregroundColor,
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.search, color: theme.appBarTheme.foregroundColor),
-              onPressed: () {
-                // Search functionality
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.filter_list, color: theme.appBarTheme.foregroundColor),
-              onPressed: () {
-                // Filter functionality
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.logout, color: theme.appBarTheme.foregroundColor),
-              onPressed: () {
-                context.read<AuthBloc>().add(GoogleSignOutEvent());
-              },
-            ),
-          ],
-        ),
         body: RefreshIndicator(
           onRefresh: _refreshEmails,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 100),
-            child: _buildBody(),
+          child: CustomScrollView(
+            slivers: [
+              // Custom curved header
+              SliverAppBar(
+                expandedHeight: 180,
+                floating: false,
+                pinned: true,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [
+                                Colors.blue[900]!,
+                                Colors.blue[700]!,
+                              ]
+                            : [
+                                Colors.blue[600]!,
+                                Colors.blue[400]!,
+                              ],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Decorative circles
+                        Positioned(
+                          top: -50,
+                          right: -50,
+                          child: Container(
+                            width: 200,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.1),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: -30,
+                          left: -30,
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.1),
+                            ),
+                          ),
+                        ),
+                        // Content
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 60, 24, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Hello there 👋',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Your Inbox',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          shadows: [
+                                            Shadow(
+                                              color: Colors.black.withOpacity(0.2),
+                                              offset: const Offset(0, 2),
+                                              blurRadius: 4,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      _buildHeaderButton(
+                                        icon: Icons.search,
+                                        onTap: () {
+                                          // Search functionality
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildHeaderButton(
+                                        icon: Icons.logout,
+                                        onTap: () {
+                                          context.read<AuthBloc>().add(GoogleSignOutEvent());
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              // Email count badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '${_emails.length} Messages',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Email list
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8, bottom: 100),
+                sliver: _buildEmailList(),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildHeaderButton({required IconData icon, required VoidCallback onTap}) {
+    return Material(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: 22,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmailList() {
     if (_emails.isEmpty) {
-      return Center(
-        child: Column(
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.inbox,
-              size: 64,
-              color: Colors.grey[600],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No emails',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[400],
-                fontWeight: FontWeight.w500,
+              Icon(
+                Icons.inbox,
+                size: 64,
+                color: Colors.grey[600],
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your inbox is empty',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+              const SizedBox(height: 16),
+              Text(
+                'No emails',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Your inbox is empty',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      itemCount: _emails.length,
-      separatorBuilder: (context, index) => Divider(
-        height: 1,
-        color: Colors.grey[800],
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final email = _emails[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: _buildEmailCard(email, index),
+          );
+        },
+        childCount: _emails.length,
       ),
-      itemBuilder: (context, index) {
-        final email = _emails[index];
-        return _buildEmailItem(email);
-      },
     );
   }
 
-  Widget _buildEmailItem(Email email) {
+  Widget _buildEmailCard(Email email, int index) {
     final senderEmail = email.from;
     final initials = _getInitials(senderEmail);
     final avatarColor = _getAvatarColor(senderEmail);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Material(
-      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      child: InkWell(
-        onTap: () {
-          // Navigate to email detail
-          log('Tapped email: ${email.subject}');
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Avatar
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: avatarColor,
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Email content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            senderEmail.split('@').first,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
+    return TweenAnimationBuilder(
+      duration: Duration(milliseconds: 300 + (index * 50)),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      builder: (context, double value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: isDark 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.grey.withOpacity(0.15),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              log('Tapped email: ${email.subject}');
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Enhanced Avatar with badge
+                      Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  avatarColor,
+                                  avatarColor.withOpacity(0.7),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: avatarColor.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            child: CircleAvatar(
+                              radius: 28,
+                              backgroundColor: Colors.transparent,
+                              child: Text(
+                                initials,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _formatTimestamp(email.date),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? Colors.grey[500] : Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      email.subject.isEmpty ? 'No Subject' : email.subject,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.grey[300] : Colors.black87,
+                          if (email.labelIds.contains('IMPORTANT'))
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.priority_high,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getEmailPreview(email.body),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.grey[500] : Colors.grey[700],
-                        height: 1.3,
+                      const SizedBox(width: 14),
+                      // Email content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    senderEmail.split('@').first,
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: isDark 
+                                        ? Colors.blue[900]!.withOpacity(0.3)
+                                        : Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _formatTimestamp(email.date),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.blue[300] : Colors.blue[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              email.subject.isEmpty ? 'No Subject' : email.subject,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.grey[300] : Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _getEmailPreview(email.body),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.grey[500] : Colors.grey[600],
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Action buttons row
+                  Row(
+                    children: [
+                      // Labels
+                      if (email.labelIds.contains('PROMOTIONS'))
+                        _buildLabel('Promotions', Colors.orange, isDark),
+                      const Spacer(),
+                      _buildActionButton(
+                        icon: Icons.reply_rounded,
+                        isDark: isDark,
+                        onTap: () {
+                          log('Reply to: ${email.subject}');
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _buildActionButton(
+                        icon: Icons.archive_rounded,
+                        isDark: isDark,
+                        onTap: () {
+                          log('Archive: ${email.subject}');
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _buildActionButton(
+                        icon: Icons.star_border_rounded,
+                        isDark: isDark,
+                        onTap: () {
+                          log('Star: ${email.subject}');
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              // Star icon
-              IconButton(
-                icon: Icon(
-                  Icons.star_border,
-                  color: isDark ? Colors.grey[600] : Colors.grey[400],
-                  size: 20,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  // Star functionality
-                },
-              ),
-            ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? color.withOpacity(0.2) : color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.4),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: isDark ? color.withOpacity(0.9) : color.withOpacity(1.0),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isDark 
+          ? Colors.grey[800]!.withOpacity(0.5)
+          : Colors.grey[200],
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isDark ? Colors.grey[400] : Colors.grey[700],
           ),
         ),
       ),
