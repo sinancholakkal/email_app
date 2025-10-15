@@ -233,6 +233,33 @@ class EmailService {
     }
   }
 
+  Future<void> markEmailAsRead(String messageId) async {
+    final accessToken = await TokenService().getAccessToken();
+    if (accessToken == null) return;
+
+    final url = Uri.parse(
+      'https://gmail.googleapis.com/gmail/v1/users/me/messages/$messageId/modify',
+    );
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      // The body of the request tells the API which labels to remove.
+      body: jsonEncode({
+        'removeLabelIds': ['UNREAD'],
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      log('Successfully marked email $messageId as read.');
+    } else {
+      log('Failed to mark email as read. Status: ${response.statusCode}');
+    }
+  }
+
   // 3. NEW: A private helper to parse the JSON into an Email model.
   // This keeps your code clean and reuses the parsing logic you created.
   // In EmailService class
@@ -241,6 +268,10 @@ class EmailService {
     final String id = jsonData['id'] ?? '';
     final String threadId = jsonData['threadId'] ?? '';
     final String snippet = jsonData['snippet'] ?? '';
+
+    // --- ADD THIS LOGIC TO CHECK LABELS ---
+    final List<String> labelIds = List<String>.from(jsonData['labelIds'] ?? []);
+    final bool isUnread = labelIds.contains('UNREAD');
     final payload = jsonData['payload'] as Map<String, dynamic>;
     final headers = payload['headers'] as List<dynamic>;
     String from = '', subject = '', dateStr = '', to = '';
@@ -309,6 +340,8 @@ class EmailService {
       date: date,
       body: decodedBody,
       isHtml: isHtml,
+      isUnread: isUnread,
+      labelIds: labelIds,
     );
   }
 }

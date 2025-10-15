@@ -37,6 +37,9 @@ class Email {
   /// Examples: ["INBOX", "STARRED", "CATEGORY_PROMOTIONS"]
   final List<String> labelIds;
 
+  /// A flag to indicate if the email is unread.
+  final bool isUnread;
+
   Email({
     required this.id,
     required this.threadId,
@@ -48,5 +51,6 @@ class Email {
     required this.body,
     this.isHtml = false,
     this.labelIds = const [],
+    this.isUnread = false,
   });
 }

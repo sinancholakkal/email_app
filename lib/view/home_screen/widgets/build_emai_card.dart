@@ -169,7 +169,7 @@ class BuildEmaiCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark
+                                    color:email.isUnread==false ? Colors.grey: isDark
                                         ? Colors.white
                                         : Colors.black87,
                                   ),
@@ -210,24 +210,24 @@ class BuildEmaiCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.grey[300] : Colors.black87,
+                              color:email.isUnread==false ? Colors.grey : isDark ? Colors.grey[300] : Colors.black87,
                             ),
-                            maxLines: 1,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            getEmailPreview(email.body),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? Colors.grey[500]
-                                  : Colors.grey[600],
-                              height: 1.4,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          // Text(
+                          //   getEmailPreview(email.body),
+                          //   style: TextStyle(
+                          //     fontSize: 13,
+                          //     color: isDark
+                          //         ? Colors.grey[500]
+                          //         : Colors.grey[600],
+                          //     height: 1.4,
+                          //   ),
+                          //   maxLines: 2,
+                          //   overflow: TextOverflow.ellipsis,
+                          // ),
                         ],
                       ),
                     ),

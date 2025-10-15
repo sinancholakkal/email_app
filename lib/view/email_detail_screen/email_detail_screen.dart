@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
+import 'package:email_app/service/email_service.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -24,6 +25,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
 
   @override
   void initState() {
+    EmailService().markEmailAsRead(widget.email.id);
     super.initState();
     _initializeWebView();
   }
