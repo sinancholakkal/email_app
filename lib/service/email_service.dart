@@ -154,18 +154,26 @@ import 'package:http/http.dart' as http;
 import 'token_service.dart'; // Assuming you have this service
 
 class EmailService {
+  final String nextPageToken = "";
   // 1. CHANGE: The main function now returns a list of Email objects.
   // It fetches the inbox and then gets the details for each message.
-  Future<List<Email>> fetchInboxEmails({int maxResults = 10}) async {
+  Future<Map<String, dynamic>> fetchInboxEmails({int maxResults = 10,String nextPageToken = ""}) async {
     final accessToken = await TokenService().getAccessToken();
     if (accessToken == null) {
       log("Access Token is null. Cannot fetch emails.");
-      return []; // Return an empty list if there's no token
+      return {}; // Return an empty list if there's no token
     }
-
-    final url = Uri.parse(
-      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=$maxResults',
+    Uri url;
+  
+    if(nextPageToken.isNotEmpty){
+      url = Uri.parse(
+        'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10&pageToken=$nextPageToken',
+      );
+    }else{
+     url = Uri.parse(
+      'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10',
     );
+    }
 
     final response = await http.get(
       url,
@@ -178,6 +186,7 @@ class EmailService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       final List<dynamic> messages = data['messages'] ?? [];
+     nextPageToken = data['nextPageToken'] ?? "";
 
       // 2. CHANGE: Efficiently fetch all email details concurrently.
       final List<Future<Email?>> emailFutures = messages
@@ -188,11 +197,14 @@ class EmailService {
       final List<Email?> emailsWithNulls = await Future.wait(emailFutures);
 
       // Filter out any emails that might have failed to fetch.
-      return emailsWithNulls.whereType<Email>().toList();
+      return {
+        'emails': emailsWithNulls.whereType<Email>().toList(),
+        'nextPageToken': nextPageToken,
+      };
     } else {
       log('Failed to fetch email IDs. Status: ${response.statusCode}');
       log('Response: ${response.body}');
-      return []; // Return an empty list on failure
+      return {}; // Return an empty list on failure
     }
   }
 

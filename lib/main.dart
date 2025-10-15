@@ -2,6 +2,7 @@ import 'package:email_app/constants/app_theme.dart';
 import 'package:email_app/firebase_options.dart';
 import 'package:email_app/router/app_router.dart';
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
+import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +28,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => AuthBloc(),
         ),
-        
+        BlocProvider(
+          create: (context) => EmailBloc(),
+        ),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
