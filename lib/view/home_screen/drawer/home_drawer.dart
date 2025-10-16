@@ -1,5 +1,7 @@
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
 import 'package:email_app/state/spam_bloc/spam_bloc.dart';
+import 'package:email_app/state/trash/trash_bloc.dart';
+import 'package:email_app/view/archive_screen/archive_screen.dart';
 import 'package:email_app/view/spam_screen.dart/spam_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -192,10 +194,9 @@ class HomeDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => BlocProvider(
-                          // <-- Provide the BLoC here
                           create: (context) => SpamBloc(),
                           child:
-                              SpamScreen(), // <-- The screen is now the child
+                              SpamScreen(),
                         ),
                       ),
                     );
@@ -213,21 +214,18 @@ class HomeDrawer extends StatelessWidget {
                 _buildModernDrawerItem(
                   context,
                   icon: Icons.archive_rounded,
-                  title: 'Archive',
-                  isDark: isDark,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoon(context);
-                  },
-                ),
-                _buildModernDrawerItem(
-                  context,
-                  icon: Icons.delete_rounded,
                   title: 'Trash',
                   isDark: isDark,
                   onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoon(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                          create: (context) => TrashBloc(),
+                          child: TrashScreen(),
+                        ),
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(height: 20),
