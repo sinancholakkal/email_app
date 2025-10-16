@@ -2,6 +2,7 @@ import 'package:email_app/constants/app_theme.dart';
 import 'package:email_app/firebase_options.dart';
 import 'package:email_app/router/app_router.dart';
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
+import 'package:email_app/state/starred_bloc/starred_bloc.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/state/send_email_bloc/send_email_bloc.dart';
 import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart';
@@ -38,6 +39,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => SendedEmailBloc(),
+        ),
+        BlocProvider(
+          create: (context) => StarredBloc(),
         ),
       ],
       child: MaterialApp.router(

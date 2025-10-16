@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/service/email_service.dart';
+import 'package:email_app/service/starred_email_service.dart';
 import 'package:meta/meta.dart';
 
 part 'sended_email_event.dart';
@@ -37,6 +38,10 @@ class SendedEmailBloc extends Bloc<SendedEmailEvent, SendedEmailState> {
      emails.clear();
      nextPageToken = "";
      add(LoadSendedDataEvent());
+    });
+    on<IstarrEventSended>((event, emit)async {
+      await StarredEmailService().toggleStarStatus(event.messageId, event.shouldStar);
+      log("Starred email: ${event.messageId}");
     });
   }
 }

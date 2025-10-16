@@ -169,6 +169,7 @@ class _SendEmailScreenState extends State<SendEmailScreen> {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: BuildEmaiCard(
+                starredType: StarredType.fromSend,
                 email: email,
                 index: index,
                 enableAnimation: index < 5,

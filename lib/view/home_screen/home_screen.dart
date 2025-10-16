@@ -171,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: BuildEmaiCard(
+                starredType: StarredType.fromHome,
                 email: email,
                 index: index,
                 enableAnimation: index < 5,

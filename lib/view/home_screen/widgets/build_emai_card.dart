@@ -2,8 +2,12 @@ import 'dart:developer';
 
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
+import 'package:email_app/state/email_bloc/email_bloc.dart';
+import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart';
+import 'package:email_app/state/starred_bloc/starred_bloc.dart';
 import 'package:email_app/view/home_screen/data/data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class BuildEmaiCard extends StatelessWidget {
@@ -12,8 +16,9 @@ class BuildEmaiCard extends StatelessWidget {
     required this.email,
     required this.index,
     this.enableAnimation = true,
+    required this.starredType,
   });
-
+  final StarredType starredType;
   final Email email;
   final int index;
   final bool enableAnimation;
@@ -25,6 +30,7 @@ class BuildEmaiCard extends StatelessWidget {
     final avatarColor = AppColors.getEmailAvatarColor(senderEmail);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    ValueNotifier<bool> isStarred = ValueNotifier(email.isStarred);
 
     // Only animate first few items, or if explicitly enabled
     final shouldAnimate = enableAnimation && index < 5;
@@ -37,6 +43,7 @@ class BuildEmaiCard extends StatelessWidget {
         senderEmail,
         initials,
         avatarColor,
+        isStarred,
       );
     }
 
@@ -55,6 +62,7 @@ class BuildEmaiCard extends StatelessWidget {
         senderEmail,
         initials,
         avatarColor,
+        isStarred,
       ),
     );
   }
@@ -65,6 +73,7 @@ class BuildEmaiCard extends StatelessWidget {
     String senderEmail,
     String initials,
     Color avatarColor,
+    ValueNotifier<bool> isStarred,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -85,7 +94,7 @@ class BuildEmaiCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-           context.push('/email_detail', extra: email);
+            context.push('/email_detail', extra: email);
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -170,7 +179,9 @@ class BuildEmaiCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
-                                    color:email.isUnread==false ? Colors.grey: isDark
+                                    color: email.isUnread == false
+                                        ? Colors.grey
+                                        : isDark
                                         ? Colors.white
                                         : Colors.black87,
                                   ),
@@ -213,7 +224,11 @@ class BuildEmaiCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color:email.isUnread==false ? Colors.grey : isDark ? Colors.grey[300] : Colors.black87,
+                              color: email.isUnread == false
+                                  ? Colors.grey
+                                  : isDark
+                                  ? Colors.grey[300]
+                                  : Colors.black87,
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
@@ -259,12 +274,43 @@ class BuildEmaiCard extends StatelessWidget {
                         log('Archive: ${email.subject}');
                       },
                     ),
+                    //Stared==================
                     const SizedBox(width: 8),
-                    _buildActionButton(
-                      icon: email.isStarred ? Icons.star_rounded : Icons.star_border_rounded,
-                      isDark: isDark,
-                      onTap: () {
-                        log('Star: ${email.subject}');
+                    ValueListenableBuilder(
+                      valueListenable: isStarred,
+                      builder: (context, value, child) {
+                        return _buildActionButton(
+                          icon: value
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          isDark: isDark,
+                          onTap: () {
+                            isStarred.value = !value;
+                            if (starredType == StarredType.fromStar) {
+                              context.read<StarredBloc>().add(
+                                ToggleStarEvent(
+                                  messageId: email.id,
+                                  shouldStar: isStarred.value,
+                                ),
+                              );
+                            }else if(starredType == StarredType.fromHome){
+                              context.read<EmailBloc>().add(
+                                IstarrEventHome(
+                                  messageId: email.id,
+                                  shouldStar: isStarred.value,
+                                ),
+                              );
+                            }else if(starredType == StarredType.fromSend){
+                              context.read<SendedEmailBloc>().add(
+                                IstarrEventSended(
+                                  messageId: email.id,
+                                  shouldStar: isStarred.value,
+                                ),
+                              );
+                            }
+                            log('Star: ${email.subject}');
+                          },
+                        );
                       },
                     ),
                   ],
@@ -319,3 +365,5 @@ class BuildEmaiCard extends StatelessWidget {
     );
   }
 }
+
+enum StarredType { fromStar, fromHome, fromSend,}
