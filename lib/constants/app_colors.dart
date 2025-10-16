@@ -25,6 +25,7 @@ class AppColors {
     ];
     return colors[email.hashCode % colors.length];
   }
+  static Color kwhite = Colors.white;
 }
 
 
