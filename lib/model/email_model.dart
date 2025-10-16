@@ -40,6 +40,9 @@ class Email {
   /// A flag to indicate if the email is unread.
   final bool isUnread;
 
+  /// A flag to indicate if the email is starred.
+  final bool isStarred;
+
   Email({
     required this.id,
     required this.threadId,
@@ -52,5 +55,6 @@ class Email {
     this.isHtml = false,
     this.labelIds = const [],
     this.isUnread = false,
+    this.isStarred = false,
   });
 }

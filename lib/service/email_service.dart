@@ -276,6 +276,7 @@ class EmailService {
     // --- ADD THIS LOGIC TO CHECK LABELS ---
     final List<String> labelIds = List<String>.from(jsonData['labelIds'] ?? []);
     final bool isUnread = labelIds.contains('UNREAD');
+    final bool isStarred = labelIds.contains('STARRED');
     final payload = jsonData['payload'] as Map<String, dynamic>;
     final headers = payload['headers'] as List<dynamic>;
     String from = '', subject = '', dateStr = '', to = '';
@@ -346,6 +347,7 @@ class EmailService {
       isHtml: isHtml,
       isUnread: isUnread,
       labelIds: labelIds,
+      isStarred: isStarred,
     );
   }
 }

@@ -261,7 +261,7 @@ class BuildEmaiCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     _buildActionButton(
-                      icon: Icons.star_border_rounded,
+                      icon: email.isStarred ? Icons.star_rounded : Icons.star_border_rounded,
                       isDark: isDark,
                       onTap: () {
                         log('Star: ${email.subject}');
