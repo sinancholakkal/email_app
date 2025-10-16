@@ -16,21 +16,24 @@ class StarredEmailScreen extends StatefulWidget {
 
 class _SendEmailScreenState extends State<StarredEmailScreen> {
   late ScrollController _controller;
+  late StarredBloc _starredBloc;
   bool isLoading = false;
   List<Email> datas = [];
+  
   @override
   void initState() {
-    context.read<StarredBloc>().add(LoadStarredDataEvent());
+    super.initState();
+    _starredBloc = context.read<StarredBloc>();
+    _starredBloc.add(LoadStarredDataEvent());
     _controller = ScrollController();
     _controller.addListener(() {
       if (_controller.position.maxScrollExtent * 0.9 <=
               _controller.position.pixels &&
           !isLoading) {
         log("Loading more data");
-        context.read<StarredBloc>().add(LoadStarredDataEvent());
+        _starredBloc.add(LoadStarredDataEvent());
       }
     });
-    super.initState();
   }
 
   @override
@@ -114,7 +117,7 @@ class _SendEmailScreenState extends State<StarredEmailScreen> {
         ),
         body: RefreshIndicator(
           onRefresh: () async {
-            context.read<StarredBloc>().add(RefreshStarredDataEvent());
+            _starredBloc.add(RefreshStarredDataEvent());
           },
           child: BlocConsumer<StarredBloc, StarredState>(
             builder: (context, state) {
@@ -139,6 +142,7 @@ class _SendEmailScreenState extends State<StarredEmailScreen> {
 
               return ListView.builder(
                 controller: _controller,
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.only(top: 8, bottom: 100),
                 itemCount: datas.length + (isLoading ? 1 : 0),
                 itemBuilder: (context, index) {
@@ -187,6 +191,7 @@ class _SendEmailScreenState extends State<StarredEmailScreen> {
   void dispose() {
     _controller.removeListener(() {});
     _controller.dispose();
+    _starredBloc.add(StarredDisposeEvent());
     super.dispose();
   }
 }

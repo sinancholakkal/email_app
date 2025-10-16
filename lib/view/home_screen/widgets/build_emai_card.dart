@@ -4,6 +4,7 @@ import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart';
+import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/starred_bloc/starred_bloc.dart';
 import 'package:email_app/view/home_screen/data/data.dart';
 import 'package:flutter/material.dart';
@@ -307,6 +308,13 @@ class BuildEmaiCard extends StatelessWidget {
                                   shouldStar: isStarred.value,
                                 ),
                               );
+                            }else if(starredType == StarredType.fromSpam){
+                              context.read<SpamBloc>().add(
+                                ToggleStarEventSpam(
+                                  messageId: email.id,
+                                  shouldSpam: isStarred.value,
+                                ),
+                              );
                             }
                             log('Star: ${email.subject}');
                           },
@@ -366,4 +374,4 @@ class BuildEmaiCard extends StatelessWidget {
   }
 }
 
-enum StarredType { fromStar, fromHome, fromSend,}
+enum StarredType { fromStar, fromHome, fromSend, fromSpam,}

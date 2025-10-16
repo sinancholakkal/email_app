@@ -1,4 +1,6 @@
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
+import 'package:email_app/state/spam_bloc/spam_bloc.dart';
+import 'package:email_app/view/spam_screen.dart/spam_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +19,9 @@ class HomeDrawer extends StatelessWidget {
     final userPhoto = user?.photoURL;
 
     return Drawer(
-      backgroundColor: isDark ? const Color(0xFF0F0F0F) : const Color(0xFFFAFAFA),
+      backgroundColor: isDark
+          ? const Color(0xFF0F0F0F)
+          : const Color(0xFFFAFAFA),
       child: Column(
         children: [
           // User Profile Header with modern design
@@ -60,10 +64,7 @@ class HomeDrawer extends StatelessWidget {
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 3,
-                            ),
+                            border: Border.all(color: Colors.white, width: 3),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.2),
@@ -75,10 +76,14 @@ class HomeDrawer extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 38,
                             backgroundColor: Colors.white,
-                            backgroundImage: userPhoto != null ? NetworkImage(userPhoto) : null,
+                            backgroundImage: userPhoto != null
+                                ? NetworkImage(userPhoto)
+                                : null,
                             child: userPhoto == null
                                 ? Text(
-                                    userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                                    userName.isNotEmpty
+                                        ? userName[0].toUpperCase()
+                                        : 'U',
                                     style: const TextStyle(
                                       fontSize: 32,
                                       fontWeight: FontWeight.bold,
@@ -179,13 +184,21 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 _buildModernDrawerItem(
                   context,
-                  icon: Icons.drafts_rounded,
-                  title: 'Drafts',
+                  icon: Icons.dangerous_rounded,
+                  title: 'Spam',
                   isDark: isDark,
-                  badge: '3',
                   onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoon(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                          // <-- Provide the BLoC here
+                          create: (context) => SpamBloc(),
+                          child:
+                              SpamScreen(), // <-- The screen is now the child
+                        ),
+                      ),
+                    );
                   },
                 ),
                 _buildModernDrawerItem(
@@ -194,7 +207,7 @@ class HomeDrawer extends StatelessWidget {
                   title: 'Starred',
                   isDark: isDark,
                   onTap: () {
-                   context.go('/starred');
+                    context.go('/starred');
                   },
                 ),
                 _buildModernDrawerItem(
@@ -260,20 +273,16 @@ class HomeDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [
-                        const Color(0xFF1E1E1E),
-                        const Color(0xFF2C2C2C),
-                      ]
-                    : [
-                        Colors.red[50]!,
-                        Colors.red[100]!,
-                      ],
+                    ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
+                    : [Colors.red[50]!, Colors.red[100]!],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? Colors.red.withOpacity(0.3) : Colors.red.withOpacity(0.2),
+                color: isDark
+                    ? Colors.red.withOpacity(0.3)
+                    : Colors.red.withOpacity(0.2),
                 width: 1.5,
               ),
             ),
@@ -286,7 +295,10 @@ class HomeDrawer extends StatelessWidget {
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -324,7 +336,7 @@ class HomeDrawer extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // App Version with modern styling
           Padding(
             padding: const EdgeInsets.only(bottom: 20, top: 8),
@@ -332,11 +344,12 @@ class HomeDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark 
-                        ? Colors.grey[850]
-                        : Colors.grey[200],
+                    color: isDark ? Colors.grey[850] : Colors.grey[200],
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -450,14 +463,19 @@ class HomeDrawer extends StatelessWidget {
                           ? const Color(0xFF3B82F6)
                           : (isDark ? Colors.grey[200] : Colors.grey[800]),
                       fontSize: 15,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                       letterSpacing: 0.2,
                     ),
                   ),
                 ),
                 if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF3B82F6)
@@ -494,9 +512,7 @@ class HomeDrawer extends StatelessWidget {
           ],
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         backgroundColor: const Color(0xFF3B82F6),
       ),
     );
@@ -506,9 +522,7 @@ class HomeDrawer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
             Icon(Icons.logout_rounded, color: Colors.red, size: 28),
@@ -554,4 +568,3 @@ class HomeDrawer extends StatelessWidget {
     );
   }
 }
-

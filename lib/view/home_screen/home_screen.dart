@@ -155,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return ListView.builder(
           controller: _controller,
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(top: 8, bottom: 100),
           itemCount: datas.length + (isLoading ? 1 : 0),
           itemBuilder: (context, index) {
