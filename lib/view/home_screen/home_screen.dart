@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:email_app/model/email_model.dart';
-import 'package:email_app/service/email_service.dart';
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/view/home_screen/widgets/build_emai_card.dart';

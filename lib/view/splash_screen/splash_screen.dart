@@ -1,4 +1,3 @@
-import 'package:email_app/di/di.dart';
 import 'package:email_app/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

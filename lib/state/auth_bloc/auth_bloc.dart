@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:email_app/di/di.dart';
 import 'package:email_app/service/auth_service.dart';
 import 'package:email_app/service/token_service.dart';
 import 'package:meta/meta.dart';

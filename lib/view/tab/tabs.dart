@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:email_app/view/email_sender_screen/email_sender_screen.dart';
 import 'package:email_app/view/home_screen/home_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
 
   final List<Widget> _pages = [
     const HomeScreen(),
-    const SecondScreen(),
+    const EmailSenderScreen(),
   ];
 
   @override
@@ -186,62 +187,6 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SecondScreen extends StatelessWidget {
-  const SecondScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        title: Text(
-          'Profile',
-          style: TextStyle(
-            color: theme.appBarTheme.foregroundColor,
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_rounded,
-              size: 100,
-              color: Colors.grey[600],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Profile Screen',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: theme.brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Coming soon...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[400],
-              ),
-            ),
           ],
         ),
       ),

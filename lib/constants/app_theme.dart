@@ -18,7 +18,6 @@ class AppTheme {
       primary: Colors.blue,
       secondary: Colors.blueAccent,
       surface: lightSurface,
-      background: lightBackground,
       error: Colors.red,
     ),
     scaffoldBackgroundColor: lightBackground,
@@ -72,9 +71,8 @@ class AppTheme {
       primary: Colors.blue[400]!,
       secondary: Colors.blueAccent[200]!,
       surface: darkSurface,
-      background: darkBackground,
       error: Colors.red[400]!,
-      surfaceVariant: darkSurfaceVariant,
+      surfaceContainerHighest: darkSurfaceVariant,
     ),
     scaffoldBackgroundColor: darkBackground,
     appBarTheme: const AppBarTheme(
