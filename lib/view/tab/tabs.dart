@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:email_app/view/email_sender_screen/email_sender_screen.dart';
+import 'package:email_app/view/home_screen/drawer/home_drawer.dart';
 import 'package:email_app/view/home_screen/home_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -13,11 +14,9 @@ class Tabs extends StatefulWidget {
 class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late AnimationController _animationController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final List<Widget> _pages = [
-    const HomeScreen(),
-    const EmailSenderScreen(),
-  ];
+  late final List<Widget> _pages;
 
   @override
   void initState() {
@@ -27,6 +26,11 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
       vsync: this,
     );
     _animationController.forward();
+    
+    _pages = [
+      HomeScreen(scaffoldKey: _scaffoldKey),
+      const EmailSenderScreen(),
+    ];
   }
 
   @override
@@ -49,6 +53,8 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
     final isDark = theme.brightness == Brightness.dark;
     
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: const HomeDrawer(),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: _pages[_selectedIndex],

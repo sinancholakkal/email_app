@@ -4,6 +4,7 @@ import 'package:email_app/router/app_router.dart';
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/state/send_email_bloc/send_email_bloc.dart';
+import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,6 +35,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => SendEmailBloc(),
+        ),
+        BlocProvider(
+          create: (context) => SendedEmailBloc(),
         ),
       ],
       child: MaterialApp.router(

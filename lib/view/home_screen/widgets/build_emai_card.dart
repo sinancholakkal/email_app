@@ -165,6 +165,7 @@ class BuildEmaiCard extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
+                                  //Sender Email-----------
                                   senderEmail.split('@').first,
                                   style: TextStyle(
                                     fontSize: 17,
@@ -190,6 +191,7 @@ class BuildEmaiCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
+                                  //Date-----------
                                   formatTimestamp(email.date),
                                   style: TextStyle(
                                     fontSize: 11,
@@ -203,6 +205,7 @@ class BuildEmaiCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 6),
+                          //Subject-----------
                           Text(
                             email.subject.isEmpty
                                 ? 'No Subject'

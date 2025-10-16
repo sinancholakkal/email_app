@@ -9,7 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final GlobalKey<ScaffoldState>? scaffoldKey;
+  
+  const HomeScreen({super.key, this.scaffoldKey});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -59,6 +61,15 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           elevation: 0,
           backgroundColor: theme.appBarTheme.backgroundColor,
+          leading: IconButton(
+            icon: Icon(
+              Icons.menu_rounded,
+              color: theme.appBarTheme.foregroundColor,
+            ),
+            onPressed: () {
+              widget.scaffoldKey?.currentState?.openDrawer();
+            },
+          ),
           title: Text(
             'Inbox',
             style: TextStyle(
@@ -142,38 +153,11 @@ class _HomeScreenState extends State<HomeScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        // if (state is AllEmailsLoadedState) {
-        //   if (state.emails.isEmpty) {
-        //     return Center(
-        //       child: Column(
-        //         mainAxisAlignment: MainAxisAlignment.center,
-        //         children: [
-        //           Icon(Icons.inbox, size: 64, color: Colors.grey[600]),
-        //           const SizedBox(height: 16),
-        //           Text(
-        //             'No emails',
-        //             style: TextStyle(
-        //               fontSize: 18,
-        //               color: Colors.grey[400],
-        //               fontWeight: FontWeight.w500,
-        //             ),
-        //           ),
-        //           const SizedBox(height: 8),
-        //           Text(
-        //             'Your inbox is empty',
-        //             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-        //           ),
-        //         ],
-        //       ),
-        //     );
-        //   }
-
         return ListView.builder(
           controller: _controller,
           padding: const EdgeInsets.only(top: 8, bottom: 100),
           itemCount: datas.length + (isLoading ? 1 : 0),
           itemBuilder: (context, index) {
-            // Show loading indicator at bottom
             if (index == datas.length) {
               return Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -186,53 +170,15 @@ class _HomeScreenState extends State<HomeScreen> {
             final email = datas[index];
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              // Only animate first 5 items for better performance
               child: BuildEmaiCard(
                 email: email,
                 index: index,
-                enableAnimation: index < 5, // Only animate first 5 items
+                enableAnimation: index < 5,
               ),
             );
           },
         );
       },
-
-      // if (state is AllEmailsErrorState) {
-      //   return Center(
-      //     child: Column(
-      //       mainAxisAlignment: MainAxisAlignment.center,
-      //       children: [
-      //         Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
-      //         const SizedBox(height: 16),
-      //         Text(
-      //           'Error loading emails',
-      //           style: TextStyle(
-      //             fontSize: 18,
-      //             color: Colors.grey[400],
-      //             fontWeight: FontWeight.w500,
-      //           ),
-      //         ),
-      //         const SizedBox(height: 8),
-      //         Text(
-      //           state.error,
-      //           style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-      //           textAlign: TextAlign.center,
-      //         ),
-      //         const SizedBox(height: 24),
-      //         ElevatedButton.icon(
-      //           onPressed: () {
-      //             context.read<EmailBloc>().add(FetchAllEmailsEvent());
-      //           },
-      //           icon: const Icon(Icons.refresh),
-      //           label: const Text('Retry'),
-      //         ),
-      //       ],
-      //     ),
-      //   );
-      // }
-
-      // Default empty state
-      //return Container();
     );
   }
 }

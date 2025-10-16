@@ -2,6 +2,7 @@
     if (email.isEmpty) return '?';
     final name = email.split('@').first;
     if (name.isEmpty) return '?';
+    if(name[0] == '"') return name[1].toUpperCase();
     return name[0].toUpperCase();
   }
 

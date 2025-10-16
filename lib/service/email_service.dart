@@ -155,6 +155,7 @@ class EmailService {
   // It fetches the inbox and then gets the details for each message.
   Future<Map<String, dynamic>> fetchInboxEmails({
     int maxResults = 10,
+    String label = "",
     String nextPageToken = "",
   }) async {
     final accessToken = await TokenService().getAccessToken();
@@ -162,17 +163,20 @@ class EmailService {
       log("Access Token is null. Cannot fetch emails.");
       return {}; // Return an empty list if there's no token
     }
-    Uri url;
 
-    if (nextPageToken.isNotEmpty) {
-      url = Uri.parse(
-        'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10&pageToken=$nextPageToken',
-      );
-    } else {
-      url = Uri.parse(
-        'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10',
-      );
+    var urlString =
+        'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=$maxResults';
+
+    // 2. Add the label filter if it exists
+    if (label.isNotEmpty) {
+      urlString += '&labelIds=$label';
     }
+    // 3. Add the page token for pagination if it exists
+    if (nextPageToken.isNotEmpty) {
+      urlString += '&pageToken=$nextPageToken';
+    }
+
+    Uri url = Uri.parse(urlString);
 
     final response = await http.get(
       url,
