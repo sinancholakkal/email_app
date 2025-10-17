@@ -48,9 +48,9 @@
 //       headers: {
 //         'Authorization': 'Bearer $accessToken',
 //         'Content-Type': 'application/json',
-//       },
-//     );
-
+//     }
+//   }
+// }
 //     // 3. Check if the request was successful
 //     if (response.statusCode == 200) {
 //       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -271,74 +271,58 @@ class EmailService {
   // 3. NEW: A private helper to parse the JSON into an Email model.
   // This keeps your code clean and reuses the parsing logic you created.
   // In EmailService class
+  // --- MODIFY THIS METHOD ---
   Email _parseEmailDetailsFromJson(Map<String, dynamic> jsonData) {
-    // ... (id, threadId, snippet, and header extraction logic remains the same) ...
     final String id = jsonData['id'] ?? '';
     final String threadId = jsonData['threadId'] ?? '';
     final String snippet = jsonData['snippet'] ?? '';
-
-    // --- ADD THIS LOGIC TO CHECK LABELS ---
     final List<String> labelIds = List<String>.from(jsonData['labelIds'] ?? []);
     final bool isUnread = labelIds.contains('UNREAD');
     final bool isStarred = labelIds.contains('STARRED');
+
     final payload = jsonData['payload'] as Map<String, dynamic>;
     final headers = payload['headers'] as List<dynamic>;
     String from = '', subject = '', dateStr = '', to = '';
+    String? messageIdHeader, referencesHeader; // <-- Declare variables here
 
+    // --- ADD EXTRA CHECKS INSIDE THIS LOOP ---
     for (var header in headers) {
       final name = header['name']?.toLowerCase();
-      if (name == 'from') from = header['value'] ?? '';
-      if (name == 'subject') subject = header['value'] ?? '';
-      if (name == 'date') dateStr = header['value'] ?? '';
-      if (name == 'to') to = header['value'] ?? '';
+      final value = header['value'] ?? '';
+      switch (name) {
+        case 'from': from = value; break;
+        case 'subject': subject = value; break;
+        case 'date': dateStr = value; break;
+        case 'to': to = value; break;
+        case 'message-id': messageIdHeader = value; break; // <-- Extract Message-ID
+        case 'references': referencesHeader = value; break; // <-- Extract References
+      }
     }
-
-    // --- START OF UPDATED BODY LOGIC ---
 
     String decodedBody = '';
     bool isHtml = false;
-
-    // Check if the email has multiple parts
-    if (payload.containsKey('parts')) {
+    // ... your existing body parsing logic ...
+     if (payload.containsKey('parts')) {
       final parts = payload['parts'] as List;
-
-      // 1. Look for the HTML part FIRST
-      final htmlPart = parts.firstWhere(
-        (part) => part['mimeType'] == 'text/html',
-        orElse: () => null, // Return null if not found
-      );
-
-      if (htmlPart != null) {
-        final encodedBody = htmlPart['body']['data'];
+      final htmlPart = parts.firstWhere((p) => p['mimeType'] == 'text/html', orElse: () => null);
+      if (htmlPart != null && htmlPart['body']?['data'] != null) {
         isHtml = true;
-        if (encodedBody != null) {
-          decodedBody = utf8.decode(base64Url.decode(encodedBody));
-        }
+        decodedBody = utf8.decode(base64Url.decode(htmlPart['body']['data']));
       } else {
-        // 2. If no HTML part, fall back to the plain text part
-        final plainPart = parts.firstWhere(
-          (part) => part['mimeType'] == 'text/plain',
-          orElse: () => null,
-        );
-        if (plainPart != null) {
-          final encodedBody = plainPart['body']['data'];
+        final plainPart = parts.firstWhere((p) => p['mimeType'] == 'text/plain', orElse: () => null);
+        if (plainPart != null && plainPart['body']?['data'] != null) {
           isHtml = false;
-          if (encodedBody != null) {
-            decodedBody = utf8.decode(base64Url.decode(encodedBody));
-          }
+          decodedBody = utf8.decode(base64Url.decode(plainPart['body']['data']));
         }
       }
-    } else if (payload.containsKey('body') && payload['body']['data'] != null) {
-      // This handles simple emails that don't have multiple parts
-      final encodedBody = payload['body']['data'];
+    } else if (payload.containsKey('body') && payload['body']?['data'] != null) {
       isHtml = payload['mimeType'] == 'text/html';
-      decodedBody = utf8.decode(base64Url.decode(encodedBody));
+      decodedBody = utf8.decode(base64Url.decode(payload['body']['data']));
     }
 
-    // --- END OF UPDATED BODY LOGIC ---
+    final DateTime date = _parseDate(dateStr);
 
-    final DateTime date = DateTime.tryParse(dateStr) ?? DateTime.now();
-
+    // --- UPDATE THE RETURNED OBJECT ---
     return Email(
       id: id,
       threadId: threadId,
@@ -349,9 +333,24 @@ class EmailService {
       date: date,
       body: decodedBody,
       isHtml: isHtml,
-      isUnread: isUnread,
       labelIds: labelIds,
+      isUnread: isUnread,
       isStarred: isStarred,
+      messageIdHeader: messageIdHeader,   // <-- Pass Message-ID
+      referencesHeader: referencesHeader, // <-- Pass References
     );
+  }
+  DateTime _parseDate(String dateStr) {
+    if (dateStr.isEmpty) return DateTime.now();
+    try {
+      // DateTime.tryParse is a basic attempt.
+      // It might fail on complex RFC 2822 date formats.
+      // For more robust parsing, consider using the 'intl' package's DateFormat
+      // or a dedicated email date parsing library if you encounter issues.
+      return DateTime.tryParse(dateStr) ?? DateTime.now(); // Basic attempt
+    } catch (e) {
+      log("Error parsing date '$dateStr': $e");
+      return DateTime.now(); // Fallback
+    }
   }
 }

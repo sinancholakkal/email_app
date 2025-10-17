@@ -42,8 +42,12 @@ class Email {
 
   /// A flag to indicate if the email is starred.
   final bool isStarred;
+  final String? messageIdHeader;  // <-- ADD THIS LINE
+  final String? referencesHeader; // <-- ADD THIS LINE
 
   Email({
+    this.messageIdHeader,
+    this.referencesHeader,
     required this.id,
     required this.threadId,
     required this.snippet,
