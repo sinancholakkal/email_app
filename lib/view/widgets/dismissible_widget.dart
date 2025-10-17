@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:email_app/model/email_model.dart';
 import 'package:flutter/material.dart';

@@ -241,56 +241,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildFilterChips(bool isDark) {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: filters.length,
-        itemBuilder: (context, index) {
-          final filter = filters[index];
-          final isSelected = selectedFilter == filter;
-          
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(filter),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  selectedFilter = filter;
-                });
-              },
-              backgroundColor: isDark 
-                  ? Colors.grey[800]!.withOpacity(0.5)
-                  : Colors.grey[100],
-              selectedColor: Colors.blue[400],
-              labelStyle: TextStyle(
-                color: isSelected 
-                    ? Colors.white 
-                    : (isDark ? Colors.grey[300] : Colors.grey[800]),
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 13,
-              ),
-              checkmarkColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isSelected 
-                      ? Colors.blue[400]! 
-                      : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-          );
-        },
-      ),
-    );
-  }
-// 
+ 
   Widget _buildInitialState(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
