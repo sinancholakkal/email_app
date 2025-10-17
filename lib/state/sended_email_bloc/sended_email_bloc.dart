@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/service/email_service.dart';
 import 'package:email_app/service/starred_email_service.dart';
+import 'package:email_app/service/trash_service.dart';
 import 'package:meta/meta.dart';
 
 part 'sended_email_event.dart';
@@ -42,6 +43,11 @@ class SendedEmailBloc extends Bloc<SendedEmailEvent, SendedEmailState> {
     on<IstarrEventSended>((event, emit)async {
       await StarredEmailService().toggleStarStatus(event.messageId, event.shouldStar);
       log("Starred email: ${event.messageId}");
+    });
+    on<TrashEmailEvent>((event, emit) async {
+      await TrashService().trashEmail(event.messageId);
+      emails.removeWhere((element) => element.id == event.messageId);
+      emit(LoadedDataState(datas: emails, isLoading: false));
     });
   }
 }

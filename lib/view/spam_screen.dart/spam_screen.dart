@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/view/home_screen/widgets/build_emai_card.dart';
+import 'package:email_app/view/widgets/dismissible_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -66,7 +67,7 @@ class _SendEmailScreenState extends State<SpamScreen> {
           },
         ),
         title: Text(
-          'Sent',
+          'Spam',
           style: TextStyle(
             color: theme.appBarTheme.foregroundColor,
             fontSize: 24,
@@ -169,11 +170,19 @@ class _SendEmailScreenState extends State<SpamScreen> {
             final email = datas[index];
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: BuildEmaiCard(
-                starredType: StarredType.fromSpam,
+              child: DismissibleWidget(
                 email: email,
-                index: index,
-                enableAnimation: index < 5,
+                onDelete: () {
+                  log("Delete pressed");
+                  context.read<SpamBloc>().add(TrashEmailEventSpam(messageId: email.id));
+                  context.pop();
+                },
+                child: BuildEmaiCard(
+                  starredType: StarredType.fromSpam,
+                  email: email,
+                  index: index,
+                  enableAnimation: index < 5,
+                ),
               ),
             );
           },

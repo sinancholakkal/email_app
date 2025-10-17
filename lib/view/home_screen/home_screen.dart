@@ -4,13 +4,14 @@ import 'package:email_app/model/email_model.dart';
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/view/home_screen/widgets/build_emai_card.dart';
+import 'package:email_app/view/widgets/dismissible_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
-  
+
   const HomeScreen({super.key, this.scaffoldKey});
 
   @override
@@ -171,11 +172,19 @@ class _HomeScreenState extends State<HomeScreen> {
             final email = datas[index];
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: BuildEmaiCard(
-                starredType: StarredType.fromHome,
+              child: DismissibleWidget(
                 email: email,
-                index: index,
-                enableAnimation: index < 5,
+                onDelete: () {
+                  log("Delete pressed");
+                  context.read<EmailBloc>().add(TrashEmailEvent(messageId: email.id));
+                  context.pop();
+                },
+                child: BuildEmaiCard(
+                  starredType: StarredType.fromHome,
+                  email: email,
+                  index: index,
+                  enableAnimation: index < 5,
+                ),
               ),
             );
           },
@@ -184,3 +193,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

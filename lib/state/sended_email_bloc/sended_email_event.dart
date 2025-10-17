@@ -10,3 +10,7 @@ class IstarrEventSended extends SendedEmailEvent{
   final bool shouldStar;
   IstarrEventSended({required this.messageId, required this.shouldStar});
 }
+class TrashEmailEvent extends SendedEmailEvent{
+  final String messageId;
+  TrashEmailEvent({required this.messageId});
+}

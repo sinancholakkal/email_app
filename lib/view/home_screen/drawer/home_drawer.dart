@@ -1,7 +1,7 @@
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
 import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/trash/trash_bloc.dart';
-import 'package:email_app/view/archive_screen/archive_screen.dart';
+import 'package:email_app/view/trash_screen/trash_screen.dart';
 import 'package:email_app/view/spam_screen.dart/spam_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

@@ -9,3 +9,7 @@ class IstarrEventHome extends EmailEvent{
   final bool shouldStar;
   IstarrEventHome({required this.messageId, required this.shouldStar});
 }
+class TrashEmailEvent extends EmailEvent{
+  final String messageId;
+  TrashEmailEvent({required this.messageId});
+}

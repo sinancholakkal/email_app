@@ -28,7 +28,7 @@ class TrashBloc extends Bloc<TrashEvent, TrashState> {
       try {
         
        if(isEndReached==false){
-         final datas = await emailService.fetchInboxEmails(nextPageToken: nextPageToken,label: "SPAM");
+         final datas = await emailService.fetchInboxEmails(nextPageToken: nextPageToken,label: "TRASH");
  
         emails.addAll(datas['emails']);
         nextPageToken = datas['nextPageToken'];

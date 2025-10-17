@@ -66,7 +66,7 @@ class _SendEmailScreenState extends State<TrashScreen> {
           },
         ),
         title: Text(
-          'Sent',
+          'Trash',
           style: TextStyle(
             color: theme.appBarTheme.foregroundColor,
             fontSize: 24,
@@ -140,7 +140,7 @@ class _SendEmailScreenState extends State<TrashScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Loading Spam emails...',
+                      'Loading Trash emails...',
                       style: TextStyle(
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                         fontSize: 14,

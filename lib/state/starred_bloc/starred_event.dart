@@ -10,3 +10,7 @@ class ToggleStarEvent extends StarredEvent{
   final bool shouldStar;
   ToggleStarEvent({required this.messageId, required this.shouldStar});
 }
+class TrashEmailEventStarred extends StarredEvent{
+  final String messageId;
+  TrashEmailEventStarred({required this.messageId});
+}

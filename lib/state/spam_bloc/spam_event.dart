@@ -10,3 +10,7 @@ class ToggleStarEventSpam extends SpamEvent{
   final bool shouldSpam;
   ToggleStarEventSpam({required this.messageId, required this.shouldSpam});
 }
+class TrashEmailEventSpam extends SpamEvent{
+  final String messageId;
+  TrashEmailEventSpam({required this.messageId});
+}

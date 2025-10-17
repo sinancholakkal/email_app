@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/service/email_service.dart';
 import 'package:email_app/service/starred_email_service.dart';
+import 'package:email_app/service/trash_service.dart';
 import 'package:meta/meta.dart';
 
 part 'spam_event.dart';
@@ -60,6 +61,11 @@ class SpamBloc extends Bloc<SpamEvent, SpamState> {
     on<ToggleStarEventSpam>((event, emit) async {
       await StarredEmailService().toggleStarStatus(event.messageId, event.shouldSpam);
       log("Toogle star event changed");
+    });
+    on<TrashEmailEventSpam>((event, emit) async {
+      await TrashService().trashEmail(event.messageId);
+      emails.removeWhere((element) => element.id == event.messageId);
+      emit(LoadedDataState(datas: emails, isLoading: false));
     });
   }
 }
