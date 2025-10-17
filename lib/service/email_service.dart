@@ -157,6 +157,7 @@ class EmailService {
     int maxResults = 10,
     String label = "",
     String nextPageToken = "",
+    String query = "",
   }) async {
     final accessToken = await TokenService().getAccessToken();
     if (accessToken == null) {
@@ -175,7 +176,10 @@ class EmailService {
     if (nextPageToken.isNotEmpty) {
       urlString += '&pageToken=$nextPageToken';
     }
-
+    if (query.isNotEmpty) {
+    // Important: URL encode the query string to handle spaces and special characters
+    urlString += '&q=${Uri.encodeQueryComponent(query)}';
+  }
     Uri url = Uri.parse(urlString);
 
     final response = await http.get(

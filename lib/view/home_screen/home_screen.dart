@@ -5,6 +5,7 @@ import 'package:email_app/state/auth_bloc/auth_bloc.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/view/home_screen/widgets/build_emai_card.dart';
 import 'package:email_app/view/widgets/dismissible_widget.dart';
+import 'package:email_app/view/widgets/search_icon_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -80,53 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           actions: [
-            BlocBuilder<EmailBloc, EmailState>(
-              builder: (context, state) {
-                int emailCount = 0;
-                if (state is LoadedDataState) {
-                  emailCount = state.datas.length;
-                }
-                return Center(
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '$emailCount',
-                      style: TextStyle(
-                        color: Colors.blue[400],
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.search,
-                color: theme.appBarTheme.foregroundColor,
-              ),
-              onPressed: () {
-                // Search functionality
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.logout,
-                color: theme.appBarTheme.foregroundColor,
-              ),
-              onPressed: () {
-                context.read<AuthBloc>().add(GoogleSignOutEvent());
-              },
-            ),
+            
+            SearchIconWidget(theme: theme),
+           
           ],
         ),
         body: RefreshIndicator(
@@ -193,4 +150,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
 
