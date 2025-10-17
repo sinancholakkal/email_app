@@ -5,7 +5,8 @@ import 'dart:developer';
 import 'package:email_app/model/email_model.dart'; // Ensure path is correct
 import 'token_service.dart'; // Ensure path is correct
 
-class ReplayEmailService { // Or your specific ReplyEmailService
+class ReplayEmailService {
+  // Or your specific ReplyEmailService
 
   // --- Add this function ---
   /// Sends a reply to a specific email as HTML.
@@ -24,8 +25,10 @@ class ReplayEmailService { // Or your specific ReplyEmailService
     }
 
     // --- 1. Get Reply Headers (using headers stored in the model) ---
-    final String originalMessageIdHeader = originalEmail.messageIdHeader ?? '<>'; // Use stored header
-    final String originalReferencesHeader = originalEmail.referencesHeader ?? ''; // Use stored header
+    final String originalMessageIdHeader =
+        originalEmail.messageIdHeader ?? '<>'; // Use stored header
+    final String originalReferencesHeader =
+        originalEmail.referencesHeader ?? ''; // Use stored header
     final String originalSubject = originalEmail.subject;
     final String replyToAddress = _extractEmailAddress(originalEmail.from);
 
@@ -40,7 +43,8 @@ class ReplayEmailService { // Or your specific ReplyEmailService
     // --- 3. Format the Reply Body (as HTML) ---
     final String htmlReplyBody = replyBody.trim().replaceAll('\n', '<br>');
     // Basic HTML quoting
-    final String formattedOriginalBody = """
+    final String formattedOriginalBody =
+        """
 <br><br>
 <div style="border-left: 1px solid #ccc; margin-left: 5px; padding-left: 10px; color: #666;">
 On ${originalEmail.date.toLocal()}, ${_extractName(originalEmail.from)} wrote:<br>
@@ -51,7 +55,8 @@ ${originalEmail.isHtml ? originalEmail.body : originalEmail.body.replaceAll('\n'
     final String fullReplyBody = htmlReplyBody + formattedOriginalBody;
 
     // --- 4. Construct the Raw MIME Email (as HTML) ---
-    final String rawEmail = """
+    final String rawEmail =
+        """
 Content-Type: text/html; charset="UTF-8"
 MIME-Version: 1.0
 To: $replyToAddress
@@ -65,10 +70,16 @@ $fullReplyBody
 
     // --- 5. Base64URL Encode ---
     // Ensure padding is removed and characters are URL-safe
-    final String encodedRawEmail = base64Url.encode(utf8.encode(rawEmail)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+    final String encodedRawEmail = base64Url
+        .encode(utf8.encode(rawEmail))
+        .replaceAll('+', '-')
+        .replaceAll('/', '_')
+        .replaceAll('=', '');
 
     // --- 6. Send via API ---
-    final url = Uri.parse('https://gmail.googleapis.com/gmail/v1/users/me/messages/send');
+    final url = Uri.parse(
+      'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
+    );
     final response = await http.post(
       url,
       headers: {
@@ -86,9 +97,9 @@ $fullReplyBody
       log('Reply sent successfully.');
       return true;
     } else if (response.statusCode == 401) {
-        log("Access Token Expired (401) while sending reply.");
-        // Consider triggering re-authentication here
-        return false;
+      log("Access Token Expired (401) while sending reply.");
+      // Consider triggering re-authentication here
+      return false;
     } else {
       log('Failed to send reply. Status: ${response.statusCode}');
       log('Response: ${response.body}');
@@ -110,5 +121,4 @@ $fullReplyBody
     // If no display name found in quotes/brackets, return the part before '@'
     return nameMatch?.group(1)?.trim() ?? fromField.split('@').first;
   }
-
 } // End of class

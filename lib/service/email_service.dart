@@ -268,10 +268,7 @@ class EmailService {
     }
   }
 
-  // 3. NEW: A private helper to parse the JSON into an Email model.
-  // This keeps your code clean and reuses the parsing logic you created.
-  // In EmailService class
-  // --- MODIFY THIS METHOD ---
+ 
   Email _parseEmailDetailsFromJson(Map<String, dynamic> jsonData) {
     final String id = jsonData['id'] ?? '';
     final String threadId = jsonData['threadId'] ?? '';
@@ -283,9 +280,8 @@ class EmailService {
     final payload = jsonData['payload'] as Map<String, dynamic>;
     final headers = payload['headers'] as List<dynamic>;
     String from = '', subject = '', dateStr = '', to = '';
-    String? messageIdHeader, referencesHeader; // <-- Declare variables here
+    String? messageIdHeader, referencesHeader; 
 
-    // --- ADD EXTRA CHECKS INSIDE THIS LOOP ---
     for (var header in headers) {
       final name = header['name']?.toLowerCase();
       final value = header['value'] ?? '';
@@ -294,8 +290,8 @@ class EmailService {
         case 'subject': subject = value; break;
         case 'date': dateStr = value; break;
         case 'to': to = value; break;
-        case 'message-id': messageIdHeader = value; break; // <-- Extract Message-ID
-        case 'references': referencesHeader = value; break; // <-- Extract References
+        case 'message-id': messageIdHeader = value; break; 
+        case 'references': referencesHeader = value; break; 
       }
     }
 
@@ -322,7 +318,6 @@ class EmailService {
 
     final DateTime date = _parseDate(dateStr);
 
-    // --- UPDATE THE RETURNED OBJECT ---
     return Email(
       id: id,
       threadId: threadId,
@@ -336,8 +331,8 @@ class EmailService {
       labelIds: labelIds,
       isUnread: isUnread,
       isStarred: isStarred,
-      messageIdHeader: messageIdHeader,   // <-- Pass Message-ID
-      referencesHeader: referencesHeader, // <-- Pass References
+      messageIdHeader: messageIdHeader,   
+      referencesHeader: referencesHeader, 
     );
   }
   DateTime _parseDate(String dateStr) {

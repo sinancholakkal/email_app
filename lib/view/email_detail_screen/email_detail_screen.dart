@@ -726,7 +726,6 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
   final TextEditingController _replyController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _isSending = false;
-  bool _showOriginalEmail = true;
 
   @override
   void initState() {
@@ -872,315 +871,111 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
               ),
             )
           else
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: TextButton.icon(
-                onPressed: _sendReply,
-                icon: const Icon(Icons.send_rounded, size: 18),
-                label: const Text('Send'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.blue[600],
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
+            IconButton(
+              icon: const Icon(Icons.send_rounded),
+              onPressed: _sendReply,
+              tooltip: 'Send',
+              color: Colors.blue[600],
             ),
         ],
       ),
       body: Column(
         children: [
-          // Email Info Header
+          // Simple Header - To and Subject
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              border: Border(
-                bottom: BorderSide(
-                  color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                  width: 1,
-                ),
-              ),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.reply_rounded,
-                      size: 18,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
+                    SizedBox(
+                      width: 60,
                       child: Text(
-                        'To: ${_extractEmail(widget.email.from)}',
+                        'To',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.grey[300] : Colors.grey[800],
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        _extractEmail(widget.email.from),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Subject: ${_getReplySubject()}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // Compose Area
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Reply Text Field
-                  TextField(
-                    controller: _replyController,
-                    focusNode: _focusNode,
-                    maxLines: null,
-                    minLines: 8,
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Write your reply...',
-                      hintStyle: TextStyle(
-                        color: isDark ? Colors.grey[600] : Colors.grey[400],
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Original Email Section
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _showOriginalEmail = !_showOriginalEmail;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.grey[850]
-                            : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _showOriginalEmail
-                                ? Icons.expand_less
-                                : Icons.expand_more,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _showOriginalEmail
-                                ? 'Hide original message'
-                                : 'Show original message',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.blue[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Original Email Content
-                  if (_showOriginalEmail) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1E1E1E)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.grey[800]!
-                              : Colors.grey[300]!,
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 60,
+                      child: Text(
+                        'Subject',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: AppColors.getEmailAvatarColor(
-                                  widget.email.from,
-                                ),
-                                child: Text(
-                                  _getInitials(widget.email.from),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _extractName(widget.email.from),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                    Text(
-                                      _formatDateForOriginal(widget.email.date),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark
-                                            ? Colors.grey[400]
-                                            : Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const Divider(height: 1),
-                          const SizedBox(height: 12),
-                          Text(
-                            widget.email.subject,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _getPlainTextFromHtml(widget.email.body),
-                            style: TextStyle(
-                              fontSize: 14,
-                              height: 1.5,
-                              color: isDark
-                                  ? Colors.grey[300]
-                                  : Colors.grey[700],
-                            ),
-                            maxLines: 10,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                    ),
+                    Expanded(
+                      child: Text(
+                        _getReplySubject(),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
-          // Bottom Toolbar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
+          // Large Compose Area
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: TextField(
+                controller: _replyController,
+                focusNode: _focusNode,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.6,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.attach_file,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                decoration: const InputDecoration(
+                  hintText: 'Write your reply...',
+                  hintStyle: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
                   ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Attachments coming soon'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  tooltip: 'Attach file',
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.image,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Image attachment coming soon'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  tooltip: 'Add image',
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.link,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Insert link coming soon'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  tooltip: 'Insert link',
-                ),
-                const Spacer(),
-                Text(
-                  '${_replyController.text.length} characters',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[500] : Colors.grey[500],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -1202,48 +997,6 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
       return emailMatch.group(1)!;
     }
     return fromField;
-  }
-
-  String _extractName(String fromField) {
-    final nameMatch = RegExp(r'^"?([^"<]+)"?\s*<').firstMatch(fromField);
-    if (nameMatch != null) {
-      return nameMatch.group(1)!.trim();
-    }
-    return fromField.split('@').first;
-  }
-
-  String _getInitials(String email) {
-    if (email.isEmpty) return '?';
-    final name = email.split('@').first;
-    if (name.isEmpty) return '?';
-    return name[0].toUpperCase();
-  }
-
-  String _formatDateForOriginal(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} minutes ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} hours ago';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday at ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
-  String _getPlainTextFromHtml(String html) {
-    // Simple HTML tag removal - for a production app, use a proper HTML parser
-    return html
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&quot;', '"')
-        .trim();
   }
 
   void _showDiscardDialog() {
