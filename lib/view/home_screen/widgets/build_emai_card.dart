@@ -95,7 +95,7 @@ class BuildEmaiCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            context.push('/email_detail', extra: email);
+            context.push('/email_detail', extra: email.id);
           },
           child: Padding(
             padding: const EdgeInsets.all(16),

@@ -1,4 +1,3 @@
-import 'package:email_app/model/email_model.dart';
 import 'package:email_app/view/email_detail_screen/email_detail_screen.dart';
 import 'package:email_app/view/home_screen/home_screen.dart';
 import 'package:email_app/view/login_screen/login_screen.dart';
@@ -19,7 +18,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/email_detail',
       builder: (context, state) =>
-          EmailDetailScreen(email: state.extra as Email,),
+          EmailDetailScreen(emailId: state.extra as String,),
     ),
     GoRoute(path: '/starred', builder: (context, state) => StarredEmailScreen()),
     GoRoute(path: '/send_email', builder: (context, state) => SendEmailScreen()),

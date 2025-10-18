@@ -231,30 +231,12 @@ class HomeDrawer extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildSectionLabel('MORE', isDark),
                 const SizedBox(height: 8),
-                _buildModernDrawerItem(
-                  context,
-                  icon: Icons.label_rounded,
-                  title: 'Labels',
-                  isDark: isDark,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoon(context);
-                  },
-                ),
-                _buildModernDrawerItem(
-                  context,
-                  icon: Icons.settings_rounded,
-                  title: 'Settings',
-                  isDark: isDark,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoon(context);
-                  },
-                ),
+      
+            
                 _buildModernDrawerItem(
                   context,
                   icon: Icons.help_outline_rounded,
-                  title: 'Help & Feedback',
+                  title: 'Privacy Policy',
                   isDark: isDark,
                   onTap: () {
                     Navigator.pop(context);

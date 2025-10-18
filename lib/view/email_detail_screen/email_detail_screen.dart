@@ -2,18 +2,18 @@ import 'dart:developer';
 
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
-import 'package:email_app/model/user_service.dart';
-import 'package:email_app/service/email_service.dart';
-import 'package:email_app/service/replay_email_service.dart';
+import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
+import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class EmailDetailScreen extends StatefulWidget {
-  final Email email;
+  final String emailId;
 
   const EmailDetailScreen({
     super.key,
-    required this.email,
+    required this.emailId,
   });
 
   @override
@@ -21,49 +21,58 @@ class EmailDetailScreen extends StatefulWidget {
 }
 
 class _EmailDetailScreenState extends State<EmailDetailScreen> {
-  late final WebViewController _controller;
-  bool _isLoading = true;
-  bool _hasError = false;
+  WebViewController? _controller;
+  bool _isWebViewLoading = true;
+  bool _hasWebViewError = false;
+  ValueNotifier<bool> isStar = ValueNotifier(false);
 
   @override
   void initState() {
-    EmailService().markEmailAsRead(widget.email.id);
     super.initState();
-    _initializeWebView();
+    // Fetch email details when screen initializes
+    context.read<EmailDetailsBloc>().add(
+      FetchEmailDetailsEvent(emailId: widget.emailId),
+    );
   }
 
-  void _initializeWebView() {
-    _controller = WebViewController()..setBackgroundColor(Colors.transparent)
+  void _initializeWebView(Email email) {
+    _controller = WebViewController()
+      ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-              _hasError = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isWebViewLoading = true;
+                _hasWebViewError = false;
+              });
+            }
           },
           onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isWebViewLoading = false;
+              });
+            }
           },
           onWebResourceError: (WebResourceError error) {
-            setState(() {
-              _isLoading = false;
-              _hasError = true;
-            });
+            if (mounted) {
+              setState(() {
+                _isWebViewLoading = false;
+                _hasWebViewError = true;
+              });
+            }
             log('WebView error: ${error.description}');
           },
         ),
       )
-      ..loadHtmlString(_buildHtmlContent());
+      ..loadHtmlString(_buildHtmlContent(email));
   }
+  
 
-  String _buildHtmlContent() {
-    final email = widget.email;
+  String _buildHtmlContent(Email email) {
     
-    // Create a complete HTML document with proper styling
     return '''
     <!DOCTYPE html>
     <html>
@@ -291,119 +300,240 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           icon: Icon(Icons.arrow_back, color: theme.appBarTheme.foregroundColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          widget.email.subject.isEmpty ? 'No Subject' : widget.email.subject,
-          style: TextStyle(
-            color: theme.appBarTheme.foregroundColor,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        title: BlocBuilder<EmailDetailsBloc, EmailDetailsState>(
+          builder: (context, state) {
+            if (state is EmailDetailsLoaded) {
+              return Text(
+                state.email.subject.isEmpty ? 'No Subject' : state.email.subject,
+                style: TextStyle(
+                  color: theme.appBarTheme.foregroundColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            }
+            return Text(
+              'Email',
+              style: TextStyle(
+                color: theme.appBarTheme.foregroundColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            );
+          },
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: theme.appBarTheme.foregroundColor),
-            onPressed: () {
-              _initializeWebView();
+          BlocBuilder<EmailDetailsBloc, EmailDetailsState>(
+            builder: (context, state) {
+              if (state is! EmailDetailsLoaded) return const SizedBox.shrink();
+              
+              return Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.refresh, color: theme.appBarTheme.foregroundColor),
+                    onPressed: () {
+                      _initializeWebView(state.email);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.reply, color: theme.appBarTheme.foregroundColor),
+                    onPressed: () {
+                      _showReplyDialog(state.email);
+                    },
+                  ),
+                  ValueListenableBuilder(
+                    valueListenable: isStar,
+                    builder: (context, value, child) {
+                      return IconButton(
+                        icon: Icon(
+                          value ? Icons.star : Icons.star_border,
+                          color: value ? Colors.yellow : theme.appBarTheme.foregroundColor,
+                        ),
+                        onPressed: () {
+                          isStar.value = !value;
+                          context.read<EmailDetailsBloc>().add(
+                            IstarrEventEmailDetails(
+                              messageId: state.email.id,
+                              shouldStar: isStar.value,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: theme.appBarTheme.foregroundColor),
+                    onSelected: (value) {
+                      _handleMenuAction(value);
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'forward',
+                        child: Row(
+                          children: [
+                            Icon(Icons.forward, size: 20),
+                            SizedBox(width: 12),
+                            Text('Forward'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'archive',
+                        child: Row(
+                          children: [
+                            Icon(Icons.archive, size: 20),
+                            SizedBox(width: 12),
+                            Text('Archive'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            SizedBox(width: 12),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
-          ),
-          IconButton(
-            icon: Icon(Icons.reply, color: theme.appBarTheme.foregroundColor),
-            onPressed: () {
-              _showReplyDialog();
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.star_border, color: theme.appBarTheme.foregroundColor),
-            onPressed: () {
-              _toggleStar();
-            },
-          ),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: theme.appBarTheme.foregroundColor),
-            onSelected: (value) {
-              _handleMenuAction(value);
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'forward',
-                child: Row(
-                  children: [
-                    Icon(Icons.forward, size: 20),
-                    SizedBox(width: 12),
-                    Text('Forward'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'archive',
-                child: Row(
-                  children: [
-                    Icon(Icons.archive, size: 20),
-                    SizedBox(width: 12),
-                    Text('Archive'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, size: 20, color: Colors.red),
-                    SizedBox(width: 12),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Email header info
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              border: Border(
-                bottom: BorderSide(
-                  color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppColors.getEmailAvatarColor(widget.email.from),
-                  child: Text(
-                    _getInitials(widget.email.from),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+      body: BlocBuilder<EmailDetailsBloc, EmailDetailsState>(
+        builder: (context, state) {
+          if (state is EmailDetailsLoading) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: Colors.blue[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading email...',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+            );
+          }
+
+          if (state is EmailDetailsError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load email',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.message,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.grey[500] : Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<EmailDetailsBloc>().add(
+                        FetchEmailDetailsEvent(emailId: widget.emailId),
+                      );
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is EmailDetailsLoaded) {
+            final email = state.email;
+            
+            // Initialize webview if not already done
+            if (_controller == null) {
+              _initializeWebView(email);
+              isStar.value = email.isStarred;
+            }
+
+            return Column(
+              children: [
+                // Email header info
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        _extractName(widget.email.from),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black87,
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: AppColors.getEmailAvatarColor(email.from),
+                        child: Text(
+                          _getInitials(email.from),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _extractName(email.from),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _extractEmail(email.from),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       Text(
-                        _extractEmail(widget.email.from),
+                        _formatDateShort(email.date),
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -412,135 +542,138 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                     ],
                   ),
                 ),
-                Text(
-                  _formatDateShort(widget.email.date),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                
+                // WebView content
+                Expanded(
+                  child: Stack(
+                    children: [
+                      if (_controller != null)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          child: WebViewWidget(controller: _controller!),
+                        ),
+                      
+                      // Loading indicator
+                      if (_isWebViewLoading)
+                        Container(
+                          color: theme.scaffoldBackgroundColor,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: Colors.blue[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Loading email content...',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      
+                      // Error state
+                      if (_hasWebViewError)
+                        Container(
+                          color: theme.scaffoldBackgroundColor,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.red[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Failed to load email content',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Please try refreshing the page',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isDark ? Colors.grey[500] : Colors.grey[500],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    _initializeWebView(email);
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
-            ),
-          ),
-          
-          // WebView content
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: WebViewWidget(controller: _controller)),
-                
-                // Loading indicator
-                if (_isLoading)
-                  Container(
-                    color: theme.scaffoldBackgroundColor,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            color: Colors.blue[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Loading email content...',
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                
-                // Error state
-                if (_hasError)
-                  Container(
-                    color: theme.scaffoldBackgroundColor,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Failed to load email content',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Please try refreshing the page',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.grey[500] : Colors.grey[500],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _initializeWebView();
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
       ),
       
       // Bottom action bar
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+      bottomNavigationBar: BlocBuilder<EmailDetailsBloc, EmailDetailsState>(
+        builder: (context, state) {
+          if (state is! EmailDetailsLoaded) return const SizedBox.shrink();
+          
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildActionButton(
-              context,
-              icon: Icons.reply_rounded,
-              label: 'Reply',
-              onTap: () => _showReplyDialog(),
-              isDark: isDark,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  context,
+                  icon: Icons.reply_rounded,
+                  label: 'Reply',
+                  onTap: () => _showReplyDialog(state.email),
+                  isDark: isDark,
+                ),
+                _buildActionButton(
+                  context,
+                  icon: Icons.reply_all_rounded,
+                  label: 'Reply All',
+                  onTap: () => _showReplyAllDialog(state.email),
+                  isDark: isDark,
+                ),
+                _buildActionButton(
+                  context,
+                  icon: Icons.forward_rounded,
+                  label: 'Forward',
+                  onTap: () => _showForwardDialog(),
+                  isDark: isDark,
+                ),
+              ],
             ),
-            _buildActionButton(
-              context,
-              icon: Icons.reply_all_rounded,
-              label: 'Reply All',
-              onTap: () => _showReplyAllDialog(),
-              isDark: isDark,
-            ),
-            _buildActionButton(
-              context,
-              icon: Icons.forward_rounded,
-              label: 'Forward',
-              onTap: () => _showForwardDialog(),
-              isDark: isDark,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -625,11 +758,11 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     );
   }
 
-  void _showReplyDialog() {
+  void _showReplyDialog(Email email) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ReplyEmailScreen(
-          email: widget.email,
+          email: email,
           isReplyAll: false,
         ),
         fullscreenDialog: true,
@@ -637,11 +770,11 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     );
   }
 
-  void _showReplyAllDialog() {
+  void _showReplyAllDialog(Email email) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ReplyEmailScreen(
-          email: widget.email,
+          email: email,
           isReplyAll: true,
         ),
         fullscreenDialog: true,
@@ -655,12 +788,6 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         content: Text('Forward functionality coming soon'),
         duration: Duration(seconds: 2),
       ),
-    );
-  }
-
-  void _toggleStar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Starred email')),
     );
   }
 
@@ -700,327 +827,6 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
               );
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Reply Email Screen Widget
-class ReplyEmailScreen extends StatefulWidget {
-  final Email email;
-  final bool isReplyAll;
-
-  const ReplyEmailScreen({
-    super.key,
-    required this.email,
-    this.isReplyAll = false,
-  });
-
-  @override
-  State<ReplyEmailScreen> createState() => _ReplyEmailScreenState();
-}
-
-class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
-  final TextEditingController _replyController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  bool _isSending = false;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _focusNode.requestFocus();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _replyController.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  Future<void> _sendReply() async {
-    if (_replyController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please write a reply message'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isSending = true;
-    });
-
-    try {
-      final userService = UserService();
-      final currentUserEmail = userService.userEmail;
-      log('currentUserEmail: $currentUserEmail');
-      log("to email: ${widget.email.from}");
-      if (currentUserEmail == null) {
-        throw Exception('User email not found');
-      }
-
-      final success = await ReplayEmailService().replyToEmail(
-        originalEmail: widget.email,
-        replyBody: _replyController.text.trim().replaceAll('\n', '<br>'),
-        currentUserEmail: currentUserEmail,
-      );
-
-      if (!mounted) return;
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Reply sent successfully!'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        throw Exception('Failed to send reply');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text('Failed to send reply: ${e.toString()}'),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'Retry',
-            textColor: Colors.white,
-            onPressed: _sendReply,
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSending = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        leading: IconButton(
-          icon: Icon(
-            Icons.close,
-            color: theme.appBarTheme.foregroundColor,
-          ),
-          onPressed: () {
-            if (_replyController.text.trim().isNotEmpty) {
-              _showDiscardDialog();
-            } else {
-              Navigator.pop(context);
-            }
-          },
-        ),
-        title: Text(
-          widget.isReplyAll ? 'Reply All' : 'Reply',
-          style: TextStyle(
-            color: theme.appBarTheme.foregroundColor,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          if (_isSending)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                ),
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.send_rounded),
-              onPressed: _sendReply,
-              tooltip: 'Send',
-              color: Colors.blue[600],
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Simple Header - To and Subject
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 60,
-                      child: Text(
-                        'To',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        _extractEmail(widget.email.from),
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 60,
-                      child: Text(
-                        'Subject',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        _getReplySubject(),
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Large Compose Area
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: TextField(
-                controller: _replyController,
-                focusNode: _focusNode,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.6,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Write your reply...',
-                  hintStyle: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getReplySubject() {
-    final subject = widget.email.subject;
-    if (subject.toLowerCase().startsWith('re:')) {
-      return subject;
-    }
-    return 'Re: $subject';
-  }
-
-  String _extractEmail(String fromField) {
-    final emailMatch = RegExp(r'<([^>]+)>').firstMatch(fromField);
-    if (emailMatch != null) {
-      return emailMatch.group(1)!;
-    }
-    return fromField;
-  }
-
-  void _showDiscardDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard reply?'),
-        content: const Text(
-          'Are you sure you want to discard this reply? Your changes will be lost.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close reply screen
-            },
-            child: const Text(
-              'Discard',
-              style: TextStyle(color: Colors.red),
-            ),
           ),
         ],
       ),

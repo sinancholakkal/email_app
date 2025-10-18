@@ -276,6 +276,7 @@ class EmailService {
     final List<String> labelIds = List<String>.from(jsonData['labelIds'] ?? []);
     final bool isUnread = labelIds.contains('UNREAD');
     final bool isStarred = labelIds.contains('STARRED');
+    String? ccHeader;
 
     final payload = jsonData['payload'] as Map<String, dynamic>;
     final headers = payload['headers'] as List<dynamic>;
@@ -292,6 +293,7 @@ class EmailService {
         case 'to': to = value; break;
         case 'message-id': messageIdHeader = value; break; 
         case 'references': referencesHeader = value; break; 
+        case 'cc': ccHeader = value; break;
       }
     }
 
@@ -333,6 +335,7 @@ class EmailService {
       isStarred: isStarred,
       messageIdHeader: messageIdHeader,   
       referencesHeader: referencesHeader, 
+      ccHeader: ccHeader,
     );
   }
   DateTime _parseDate(String dateStr) {
