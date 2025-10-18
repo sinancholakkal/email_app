@@ -16,9 +16,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
     GoRoute(path: '/tabs', builder: (context, state) => Tabs()),
     GoRoute(
-      path: '/email_detail',
-      builder: (context, state) =>
-          EmailDetailScreen(emailId: state.extra as String,),
+      path: '/email-detail/:emailId',
+      builder: (context, state) {
+        final emailId = state.pathParameters['emailId']!;
+        return EmailDetailScreen(emailId: emailId);
+      },
     ),
     GoRoute(path: '/starred', builder: (context, state) => StarredEmailScreen()),
     GoRoute(path: '/send_email', builder: (context, state) => SendEmailScreen()),
