@@ -43,6 +43,13 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
 
     on<IstarrEventHome>((event, emit) async {
       await StarredEmailService().toggleStarStatus(event.messageId, event.shouldStar);
+      
+      // Update local state
+      final emailIndex = emails.indexWhere((e) => e.id == event.messageId);
+      if (emailIndex != -1) {
+        emails[emailIndex] = emails[emailIndex].copyWith(isStarred: event.shouldStar);
+        emit(LoadedDataState(datas: emails, isLoading: false));
+      }
     });
     on<TrashEmailEvent>((event, emit) async {
       await TrashService().trashEmail(event.messageId);

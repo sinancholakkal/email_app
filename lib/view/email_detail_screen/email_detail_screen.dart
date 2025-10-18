@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
+import 'package:email_app/view/email_detail_screen/widget/forward_email.dart';
 import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -366,7 +367,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                   PopupMenuButton<String>(
                     icon: Icon(Icons.more_vert, color: theme.appBarTheme.foregroundColor),
                     onSelected: (value) {
-                      _handleMenuAction(value);
+                      _handleMenuAction(value, state.email);
                     },
                     itemBuilder: (context) => [
                       const PopupMenuItem(
@@ -667,7 +668,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                   context,
                   icon: Icons.forward_rounded,
                   label: 'Forward',
-                  onTap: () => _showForwardDialog(),
+                  onTap: () => _showForwardDialog(state.email),
                   isDark: isDark,
                 ),
               ],
@@ -782,19 +783,21 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     );
   }
 
-  void _showForwardDialog() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Forward functionality coming soon'),
-        duration: Duration(seconds: 2),
+  void _showForwardDialog(Email email) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ForwardEmailScreen(
+          email: email,
+        ),
+        fullscreenDialog: true,
       ),
     );
   }
 
-  void _handleMenuAction(String action) {
+  void _handleMenuAction(String action, Email? email) {
     switch (action) {
       case 'forward':
-        _showForwardDialog();
+        if (email != null) _showForwardDialog(email);
         break;
       case 'archive':
         ScaffoldMessenger.of(context).showSnackBar(

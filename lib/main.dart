@@ -45,7 +45,9 @@ class MyApp extends StatelessWidget {
           create: (context) => StarredBloc(),
         ),
         BlocProvider(
-          create: (context) => EmailDetailsBloc(),
+          create: (context) => EmailDetailsBloc(
+            emailBloc: context.read<EmailBloc>(),
+          ),
         ),
       ],
       child: MaterialApp.router(

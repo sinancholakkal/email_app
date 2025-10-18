@@ -3,13 +3,16 @@ import 'package:email_app/model/email_model.dart';
 import 'package:email_app/service/email_service.dart';
 import 'package:email_app/service/starred_email_service.dart';
 import 'package:email_app/service/token_service.dart';
+import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:meta/meta.dart';
 
 part 'email_details_event.dart';
 part 'email_details_state.dart';
 
 class EmailDetailsBloc extends Bloc<EmailDetailsEvent, EmailDetailsState> {
-  EmailDetailsBloc() : super(EmailDetailsInitial()) {
+  final EmailBloc? emailBloc;
+  
+  EmailDetailsBloc({this.emailBloc}) : super(EmailDetailsInitial()) {
     on<FetchEmailDetailsEvent>(_onFetchEmailDetails);
     on<IstarrEventEmailDetails>(_onToggleStar);
   }
@@ -44,5 +47,20 @@ class EmailDetailsBloc extends Bloc<EmailDetailsEvent, EmailDetailsState> {
     Emitter<EmailDetailsState> emit,
   ) async {
     await StarredEmailService().toggleStarStatus(event.messageId, event.shouldStar);
+    
+    // Notify EmailBloc to update its local state
+    if (emailBloc != null) {
+      emailBloc!.add(IstarrEventHome(
+        messageId: event.messageId,
+        shouldStar: event.shouldStar,
+      ));
+    }
+    
+    // Update local state if email is loaded
+    if (state is EmailDetailsLoaded) {
+      final currentEmail = (state as EmailDetailsLoaded).email;
+      final updatedEmail = currentEmail.copyWith(isStarred: event.shouldStar);
+      emit(EmailDetailsLoaded(email: updatedEmail));
+    }
   }
 }

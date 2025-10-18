@@ -1,55 +1,62 @@
-
-// Reply Email Screen Widget
 import 'dart:developer';
 
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/model/user_service.dart';
-import 'package:email_app/service/replay_email_service.dart';
-import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
+import 'package:email_app/service/forward_email_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ReplyEmailScreen extends StatefulWidget {
+class ForwardEmailScreen extends StatefulWidget {
   final Email email;
-  final bool isReplyAll;
 
-  const ReplyEmailScreen({
+  const ForwardEmailScreen({
     super.key,
     required this.email,
-    this.isReplyAll = false,
   });
 
   @override
-  State<ReplyEmailScreen> createState() => _ReplyEmailScreenState();
+  State<ForwardEmailScreen> createState() => _ForwardEmailScreenState();
 }
 
-class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
-  final TextEditingController _replyController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
+class _ForwardEmailScreenState extends State<ForwardEmailScreen> {
+  final TextEditingController _toController = TextEditingController();
+  final TextEditingController _ccController = TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
+  final FocusNode _toFocusNode = FocusNode();
+  final FocusNode _ccFocusNode = FocusNode();
+  final FocusNode _messageFocusNode = FocusNode();
+  
   bool _isSending = false;
+  bool _showCc = false;
 
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
-        _focusNode.requestFocus();
+        _toFocusNode.requestFocus();
       }
     });
   }
 
   @override
   void dispose() {
-    _replyController.dispose();
-    _focusNode.dispose();
+    _toController.dispose();
+    _ccController.dispose();
+    _messageController.dispose();
+    _toFocusNode.dispose();
+    _ccFocusNode.dispose();
+    _messageFocusNode.dispose();
     super.dispose();
   }
 
-  Future<void> _sendReply() async {
-    if (_replyController.text.trim().isEmpty) {
+  Future<void> _sendForward() async {
+    final forwardService = ForwardEmailService();
+    
+    // Validate recipients
+    if (_toController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please write a reply message'),
+          content: Text('Please add at least one recipient'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -63,38 +70,42 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
     try {
       final userService = UserService();
       final currentUserEmail = userService.userEmail;
-      log('currentUserEmail: $currentUserEmail');
-      log("to email: ${widget.email.from}");
+      
       if (currentUserEmail == null) {
         throw Exception('User email not found');
       }
-      bool success;
-      if(widget.isReplyAll){
-        success = await ReplayEmailService().replyAllToEmail(
-          originalEmail: widget.email,
-          replyBody: _replyController.text.trim().replaceAll('\n', '<br>'),
-          currentUserEmail: currentUserEmail,
-        );
-      }else{
-       success = await ReplayEmailService().replyToEmail(
-        originalEmail: widget.email,
-        replyBody: _replyController.text.trim().replaceAll('\n', '<br>'),
-        currentUserEmail: currentUserEmail,
-      );
+
+      // Parse recipients
+      final toRecipients = forwardService.parseEmailAddresses(_toController.text);
+      final ccRecipients = _showCc ? forwardService.parseEmailAddresses(_ccController.text) : null;
+
+      if (toRecipients.isEmpty) {
+        throw Exception('No valid email addresses found in To field');
       }
+
+      log('Forwarding to: ${toRecipients.join(", ")}');
+      if (ccRecipients != null && ccRecipients.isNotEmpty) {
+        log('CC: ${ccRecipients.join(", ")}');
+      }
+
+      final success = await forwardService.forwardEmail(
+        originalEmail: widget.email,
+        forwardBody: _messageController.text.trim().replaceAll('\n', '<br>'),
+        currentUserEmail: currentUserEmail,
+        toRecipients: toRecipients,
+        ccRecipients: ccRecipients,
+      );
+
       if (!mounted) return;
 
       if (success) {
-         context.read<EmailDetailsBloc>().add(
-      FetchEmailDetailsEvent(emailId: widget.email.id),
-    );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 12),
-                Text('Reply sent successfully!'),
+                Text('Email forwarded successfully!'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -103,7 +114,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
         );
         Navigator.pop(context);
       } else {
-        throw Exception('Failed to send reply');
+        throw Exception('Failed to forward email');
       }
     } catch (e) {
       if (!mounted) return;
@@ -115,7 +126,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 12),
               Expanded(
-                child: Text('Failed to send reply: ${e.toString()}'),
+                child: Text('Failed to forward: ${e.toString()}'),
               ),
             ],
           ),
@@ -124,7 +135,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
           action: SnackBarAction(
             label: 'Retry',
             textColor: Colors.white,
-            onPressed: _sendReply,
+            onPressed: _sendForward,
           ),
         ),
       );
@@ -153,7 +164,8 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
             color: theme.appBarTheme.foregroundColor,
           ),
           onPressed: () {
-            if (_replyController.text.trim().isNotEmpty) {
+            if (_toController.text.trim().isNotEmpty || 
+                _messageController.text.trim().isNotEmpty) {
               _showDiscardDialog();
             } else {
               Navigator.pop(context);
@@ -161,7 +173,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
           },
         ),
         title: Text(
-          widget.isReplyAll ? 'Reply All' : 'Reply',
+          'Forward',
           style: TextStyle(
             color: theme.appBarTheme.foregroundColor,
             fontSize: 20,
@@ -184,7 +196,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
           else
             IconButton(
               icon: const Icon(Icons.send_rounded),
-              onPressed: _sendReply,
+              onPressed: _sendForward,
               tooltip: 'Send',
               color: Colors.blue[600],
             ),
@@ -192,14 +204,15 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
       ),
       body: Column(
         children: [
-          // Simple Header - To and Subject
+          // Recipients Section
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             ),
             child: Column(
               children: [
+                // To field
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -215,18 +228,84 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Text(
-                        _extractEmail(widget.email.from),
+                      child: TextField(
+                        controller: _toController,
+                        focusNode: _toFocusNode,
                         style: TextStyle(
                           fontSize: 15,
                           color: isDark ? Colors.white : Colors.black87,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        decoration: InputDecoration(
+                          hintText: 'recipient@example.com',
+                          hintStyle: TextStyle(
+                            color: isDark ? Colors.grey[600] : Colors.grey[400],
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        keyboardType: TextInputType.emailAddress,
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _showCc ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.blue[600],
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showCc = !_showCc;
+                        });
+                      },
+                      tooltip: 'Add Cc',
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                
+                // Cc field (conditional)
+                if (_showCc) ...[
+                  const Divider(height: 1),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 60,
+                        child: Text(
+                          'Cc',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _ccController,
+                          focusNode: _ccFocusNode,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'cc@example.com',
+                            hintStyle: TextStyle(
+                              color: isDark ? Colors.grey[600] : Colors.grey[400],
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                
+                // Subject (read-only)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -243,10 +322,10 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
                     ),
                     Expanded(
                       child: Text(
-                        _getReplySubject(),
+                        _getForwardSubject(),
                         style: TextStyle(
                           fontSize: 15,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -258,14 +337,13 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
             ),
           ),
 
-          // Large Compose Area
+          // Message Compose Area
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: TextField(
-                
-                controller: _replyController,
-                focusNode: _focusNode,
+                controller: _messageController,
+                focusNode: _messageFocusNode,
                 maxLines: null,
                 expands: true,
                 textAlignVertical: TextAlignVertical.top,
@@ -275,8 +353,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
                   color: isDark ? Colors.white : Colors.black87,
                 ),
                 decoration: const InputDecoration(
-                  
-                  hintText: 'Write your reply...',
+                  hintText: 'Add a message (optional)...',
                   hintStyle: TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
@@ -296,29 +373,21 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
     );
   }
 
-  String _getReplySubject() {
+  String _getForwardSubject() {
     final subject = widget.email.subject;
-    if (subject.toLowerCase().startsWith('re:')) {
+    if (subject.toLowerCase().startsWith('fwd:')) {
       return subject;
     }
-    return 'Re: $subject';
-  }
-
-  String _extractEmail(String fromField) {
-    final emailMatch = RegExp(r'<([^>]+)>').firstMatch(fromField);
-    if (emailMatch != null) {
-      return emailMatch.group(1)!;
-    }
-    return fromField;
+    return 'Fwd: $subject';
   }
 
   void _showDiscardDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard reply?'),
+        title: const Text('Discard forward?'),
         content: const Text(
-          'Are you sure you want to discard this reply? Your changes will be lost.',
+          'Are you sure you want to discard this forward? Your changes will be lost.',
         ),
         actions: [
           TextButton(
@@ -328,7 +397,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close reply screen
+              Navigator.pop(context); // Close forward screen
             },
             child: const Text(
               'Discard',
@@ -340,3 +409,4 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
     );
   }
 }
+

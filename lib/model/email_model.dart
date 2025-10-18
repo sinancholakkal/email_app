@@ -14,6 +14,7 @@ class Email {
   final String? messageIdHeader;  
   final String? referencesHeader; 
   final String? ccHeader;
+  
   Email({
     this.messageIdHeader,
     this.referencesHeader,
@@ -31,4 +32,40 @@ class Email {
     this.isStarred = false,
     this.ccHeader,
   });
+
+  Email copyWith({
+    String? id,
+    String? threadId,
+    String? snippet,
+    String? from,
+    String? to,
+    String? subject,
+    DateTime? date,
+    String? body,
+    bool? isHtml,
+    List<String>? labelIds,
+    bool? isUnread,
+    bool? isStarred,
+    String? messageIdHeader,
+    String? referencesHeader,
+    String? ccHeader,
+  }) {
+    return Email(
+      id: id ?? this.id,
+      threadId: threadId ?? this.threadId,
+      snippet: snippet ?? this.snippet,
+      from: from ?? this.from,
+      to: to ?? this.to,
+      subject: subject ?? this.subject,
+      date: date ?? this.date,
+      body: body ?? this.body,
+      isHtml: isHtml ?? this.isHtml,
+      labelIds: labelIds ?? this.labelIds,
+      isUnread: isUnread ?? this.isUnread,
+      isStarred: isStarred ?? this.isStarred,
+      messageIdHeader: messageIdHeader ?? this.messageIdHeader,
+      referencesHeader: referencesHeader ?? this.referencesHeader,
+      ccHeader: ccHeader ?? this.ccHeader,
+    );
+  }
 }
