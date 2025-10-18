@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
+import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
 import 'package:email_app/view/email_detail_screen/widget/forward_email.dart';
 import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
@@ -380,16 +381,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'archive',
-                        child: Row(
-                          children: [
-                            Icon(Icons.archive, size: 20),
-                            SizedBox(width: 12),
-                            Text('Archive'),
-                          ],
-                        ),
-                      ),
+                    
                       const PopupMenuItem(
                         value: 'delete',
                         child: Row(
@@ -799,11 +791,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
       case 'forward':
         if (email != null) _showForwardDialog(email);
         break;
-      case 'archive':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email archived')),
-        );
-        break;
+
       case 'delete':
         _showDeleteConfirmation();
         break;
@@ -823,6 +811,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           ),
           TextButton(
             onPressed: () {
+              context.read<EmailBloc>().add(TrashEmailEvent(messageId: widget.emailId));
               Navigator.pop(context);
               Navigator.pop(context); // Go back to inbox
               ScaffoldMessenger.of(context).showSnackBar(

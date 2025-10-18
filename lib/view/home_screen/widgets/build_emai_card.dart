@@ -3,10 +3,12 @@ import 'dart:developer';
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
-import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart';
+import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart' hide TrashEmailEvent;
 import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/starred_bloc/starred_bloc.dart';
+import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:email_app/view/home_screen/data/data.dart';
+import 'package:email_app/view/widgets/delete_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -264,15 +266,21 @@ class BuildEmaiCard extends StatelessWidget {
                       icon: Icons.reply_rounded,
                       isDark: isDark,
                       onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ReplyEmailScreen(email: email)));
                         log('Reply to: ${email.subject}');
                       },
                     ),
                     const SizedBox(width: 8),
                     _buildActionButton(
-                      icon: Icons.archive_rounded,
+                      icon: Icons.delete,
                       isDark: isDark,
                       onTap: () {
                         log('Archive: ${email.subject}');
+                        deleteDialog(context, () {
+                          context.read<EmailBloc>().add(TrashEmailEvent(messageId: email.id));
+                          log('Delete: ${email.subject}');
+                          context.pop();
+                        });
                       },
                     ),
                     //Stared==================
