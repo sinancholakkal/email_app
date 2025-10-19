@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       builder: (context, state) {
         if (state is InitialLoading) {
-          return Container(
+          return SizedBox(
             height: 400,
             child: Center(
               child: Column(
@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         if (datas.isEmpty) {
-          return Container(
+          return SizedBox(
             height: 400,
             child: Center(
               child: Column(

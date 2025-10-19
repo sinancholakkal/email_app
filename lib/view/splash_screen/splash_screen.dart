@@ -1,3 +1,4 @@
+import 'package:email_app/constants/app_string.dart';
 import 'package:email_app/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -129,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                           // App Name
                           Text(
-                            'Email App',
+                            AppString.appName,
                             style: TextStyle(
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
