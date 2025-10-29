@@ -1,4 +1,4 @@
-package com.android.email_app
+package com.qmail.email_app
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()

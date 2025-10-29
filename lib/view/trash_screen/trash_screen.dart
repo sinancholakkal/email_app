@@ -125,7 +125,7 @@ class _SendEmailScreenState extends State<TrashScreen> {
                       vertical: 6,
                     ),
                     child: BuildEmaiCard(
-                      starredType: StarredType.fromSpam,
+                      starredType: StarredType.fromTrash,
                       email: email,
                       index: index,
                       enableAnimation: index < 5,

@@ -14,3 +14,8 @@ class TrashEmailEventSpam extends SpamEvent{
   final String messageId;
   TrashEmailEventSpam({required this.messageId});
 }
+class MarkEmailAsReadEventSpam extends SpamEvent{
+  final String emailId;
+  final int emailIndex;
+  MarkEmailAsReadEventSpam({required this.emailId, required this.emailIndex});
+}

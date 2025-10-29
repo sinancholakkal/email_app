@@ -48,6 +48,42 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1022858960823:android:c89a41cb5bec6274021232",
+        "android_client_info": {
+          "package_name": "com.qmail.email_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1022858960823-9th1q1muengmh7hftk1bapv543fcu07i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoDr8Yj0smgSIYZPWa2cdXhcgt8AQrB4c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1022858960823-9th1q1muengmh7hftk1bapv543fcu07i.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1022858960823-9plah1n5athv829rd71pdi2784lrheos.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.emailApp"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

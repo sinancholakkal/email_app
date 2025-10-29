@@ -61,6 +61,14 @@ class TrashBloc extends Bloc<TrashEvent, TrashState> {
       await StarredEmailService().toggleStarStatus(event.messageId, event.shouldTrash);
       log("Toogle star event changed");
     });
+    on<MarkEmailAsReadTrashEvent>((event, emit) async {
+      await EmailService().markEmailAsRead(event.emailId);
+      final nEmails = List<Email>.from(emails);
+      emails.clear();
+      nEmails[event.emailIndex] = nEmails[event.emailIndex].copyWith(isUnread: false);
+      emails.addAll(nEmails);
+      emit(LoadedDataState(datas: emails, isLoading: false));
+    });
   }
 }
 

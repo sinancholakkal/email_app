@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAoDr8Yj0smgSIYZPWa2cdXhcgt8AQrB4c',
-    appId: '1:1022858960823:android:7ec6371869498c85021232',
+    appId: '1:1022858960823:android:c89a41cb5bec6274021232',
     messagingSenderId: '1022858960823',
     projectId: 'email-app-1fec8',
     storageBucket: 'email-app-1fec8.firebasestorage.app',
@@ -63,6 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1022858960823',
     projectId: 'email-app-1fec8',
     storageBucket: 'email-app-1fec8.firebasestorage.app',
+    androidClientId: '1022858960823-fd21qm2202qmpdm7394o2q9enper5ot1.apps.googleusercontent.com',
+    iosClientId: '1022858960823-9plah1n5athv829rd71pdi2784lrheos.apps.googleusercontent.com',
     iosBundleId: 'com.example.emailApp',
   );
+
 }

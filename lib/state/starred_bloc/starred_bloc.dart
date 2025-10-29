@@ -46,6 +46,14 @@ class StarredBloc extends Bloc<StarredEvent, StarredState> {
         emit(EmailsErrorState(error: "Something went wrong"));
       }
     });
+    on<MarkEmailAsReadStarredEvent>((event, emit) async {
+      await EmailService().markEmailAsRead(event.emailId);
+      final nEmails = List<Email>.from(emails);
+      emails.clear();
+      nEmails[event.emailIndex] = nEmails[event.emailIndex].copyWith(isUnread: false);
+      emails.addAll(nEmails); 
+      emit(LoadedDataState(datas: emails, isLoading: false));
+    });
     on<RefreshStarredDataEvent>((event, emit)async {
       emit(InitialLoading());
      emails.clear();

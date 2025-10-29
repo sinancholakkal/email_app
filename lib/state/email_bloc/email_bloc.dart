@@ -34,6 +34,25 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
         //emit(AllEmailsErrorState(error: e.toString()));
       }
     });
+    on<MarkEmailAsReadEvent>((event, emit) async {
+      // await EmailService().markEmailAsRead(event.emailId);
+      final nEmails = List<Email>.from(emails);
+      log(emails[event.emailIndex].isUnread.toString());
+      log("===================================");
+      emails.clear();
+
+   
+        nEmails[event.emailIndex] = nEmails[event.emailIndex].copyWith(
+          isUnread: false,
+        );
+        await EmailService().markEmailAsRead(event.emailId);
+        log("Marked as read");
+        emails.addAll(nEmails);
+        log(emails[event.emailIndex].isUnread.toString());
+        log("Emitting new state");
+        emit(LoadedDataState(datas: emails, isLoading: false));
+      
+    });
     on<RefreshDataEvent>((event, emit) async {
       emit(InitialLoading());
       emails.clear();
@@ -42,12 +61,17 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
     });
 
     on<IstarrEventHome>((event, emit) async {
-      await StarredEmailService().toggleStarStatus(event.messageId, event.shouldStar);
-      
+      await StarredEmailService().toggleStarStatus(
+        event.messageId,
+        event.shouldStar,
+      );
+
       // Update local state
       final emailIndex = emails.indexWhere((e) => e.id == event.messageId);
       if (emailIndex != -1) {
-        emails[emailIndex] = emails[emailIndex].copyWith(isStarred: event.shouldStar);
+        emails[emailIndex] = emails[emailIndex].copyWith(
+          isStarred: event.shouldStar,
+        );
         emit(LoadedDataState(datas: emails, isLoading: false));
       }
     });

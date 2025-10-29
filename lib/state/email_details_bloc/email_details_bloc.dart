@@ -18,7 +18,7 @@ class EmailDetailsBloc extends Bloc<EmailDetailsEvent, EmailDetailsState> {
   }
 
   Future<void> _onFetchEmailDetails(
-    FetchEmailDetailsEvent event,
+    FetchEmailDetailsEvent event, 
     Emitter<EmailDetailsState> emit,
   ) async {
     emit(EmailDetailsLoading());
@@ -32,7 +32,7 @@ class EmailDetailsBloc extends Bloc<EmailDetailsEvent, EmailDetailsState> {
       final email = await EmailService().fetchEmailDetails(accessToken, event.emailId);
       
       if (email != null) {
-        await EmailService().markEmailAsRead(event.emailId);
+       // await EmailService().markEmailAsRead(event.emailId);
         emit(EmailDetailsLoaded(email: email));
       } else {
         emit(EmailDetailsError(message: 'Failed to fetch email'));

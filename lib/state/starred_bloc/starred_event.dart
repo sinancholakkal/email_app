@@ -14,3 +14,10 @@ class TrashEmailEventStarred extends StarredEvent{
   final String messageId;
   TrashEmailEventStarred({required this.messageId});
 }
+class MarkEmailAsReadStarredEvent extends StarredEvent{
+  final String emailId;
+  final int emailIndex;
+
+  MarkEmailAsReadStarredEvent({required this.emailId, required this.emailIndex});
+  
+}

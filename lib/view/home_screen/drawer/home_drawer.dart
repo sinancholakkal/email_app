@@ -170,7 +170,6 @@ class HomeDrawer extends StatelessWidget {
                   title: 'Inbox',
                   isDark: isDark,
                   isSelected: true,
-                  badge: '12',
                   onTap: () {
                     Navigator.pop(context);
                   },
@@ -181,7 +180,7 @@ class HomeDrawer extends StatelessWidget {
                   title: 'Sent',
                   isDark: isDark,
                   onTap: () {
-                    context.go('/send_email');
+                    context.push('/send_email');
                   },
                 ),
                 _buildModernDrawerItem(
@@ -208,7 +207,7 @@ class HomeDrawer extends StatelessWidget {
                   title: 'Starred',
                   isDark: isDark,
                   onTap: () {
-                    context.go('/starred');
+                    context.push('/starred');
                   },
                 ),
                 _buildModernDrawerItem(
@@ -239,8 +238,7 @@ class HomeDrawer extends StatelessWidget {
                   title: 'Privacy Policy',
                   isDark: isDark,
                   onTap: () {
-                    Navigator.pop(context);
-                    _showComingSoon(context);
+                    context.push('/privacy_policy');
                   },
                 ),
               ],

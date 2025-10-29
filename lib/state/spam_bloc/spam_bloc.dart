@@ -67,6 +67,16 @@ class SpamBloc extends Bloc<SpamEvent, SpamState> {
       emails.removeWhere((element) => element.id == event.messageId);
       emit(LoadedDataState(datas: emails, isLoading: false));
     });
+    on<MarkEmailAsReadEventSpam>((event, emit) async {
+      final nEmails = List<Email>.from(emails);
+      emails.clear();
+
+        nEmails[event.emailIndex] = nEmails[event.emailIndex].copyWith(isUnread: false);
+      
+      await EmailService().markEmailAsRead(event.emailId);
+      emails.addAll(nEmails);
+      emit(LoadedDataState(datas: emails, isLoading: false));
+    });
   }
 }
 

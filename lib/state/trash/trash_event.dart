@@ -9,3 +9,8 @@ class ToggleTrashStarEvent extends TrashEvent{
   final bool shouldTrash;
   ToggleTrashStarEvent({required this.messageId, required this.shouldTrash});
 }
+class MarkEmailAsReadTrashEvent extends TrashEvent{
+  final String emailId;
+  final int emailIndex;
+  MarkEmailAsReadTrashEvent({required this.emailId, required this.emailIndex});
+}

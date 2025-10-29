@@ -3,9 +3,14 @@ import 'dart:developer';
 import 'package:email_app/constants/app_colors.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/state/email_bloc/email_bloc.dart';
-import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart' hide TrashEmailEvent;
+import 'package:email_app/state/sended_email_bloc/sended_email_bloc.dart'
+    hide TrashEmailEvent;
 import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/starred_bloc/starred_bloc.dart';
+import 'package:email_app/state/trash/trash_bloc.dart';
+import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
+import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
+import 'package:email_app/view/email_detail_screen/email_detail_screen.dart';
 import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:email_app/view/home_screen/data/data.dart';
 import 'package:email_app/view/widgets/delete_dialog.dart';
@@ -97,7 +102,41 @@ class BuildEmaiCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            context.push('/email_detail', extra: email.id);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (context) =>
+                      EmailDetailsBloc(emailBloc: context.read<EmailBloc>(),),
+                  child: EmailDetailScreen(emailId: email.id, email: email),
+                ),
+              ),
+            );
+
+            //EmailDetailScreen(emailId: email.id,email: email,)));
+            if (email.isUnread && starredType == StarredType.fromHome) {
+              context.read<EmailBloc>().add(
+                MarkEmailAsReadEvent(emailId: email.id, emailIndex: index),
+              );
+            }
+            if (email.isUnread && starredType == StarredType.fromSpam) {
+              context.read<SpamBloc>().add(
+                MarkEmailAsReadEventSpam(emailId: email.id, emailIndex: index),
+              );
+            }
+            if (email.isUnread && starredType == StarredType.fromStar) {
+              context.read<StarredBloc>().add(
+                MarkEmailAsReadStarredEvent(
+                  emailId: email.id,
+                  emailIndex: index,
+                ),
+              );
+            }
+            if (email.isUnread && starredType == StarredType.fromTrash) {
+              context.read<TrashBloc>().add(
+                MarkEmailAsReadTrashEvent(emailId: email.id, emailIndex: index),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -266,7 +305,13 @@ class BuildEmaiCard extends StatelessWidget {
                       icon: Icons.reply_rounded,
                       isDark: isDark,
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => ReplyEmailScreen(email: email)));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ReplyEmailScreen(email: email),
+                          ),
+                        );
                         log('Reply to: ${email.subject}');
                       },
                     ),
@@ -277,7 +322,9 @@ class BuildEmaiCard extends StatelessWidget {
                       onTap: () {
                         log('Archive: ${email.subject}');
                         deleteDialog(context, () {
-                          context.read<EmailBloc>().add(TrashEmailEvent(messageId: email.id));
+                          context.read<EmailBloc>().add(
+                            TrashEmailEvent(messageId: email.id),
+                          );
                           log('Delete: ${email.subject}');
                           context.pop();
                         });
@@ -302,21 +349,21 @@ class BuildEmaiCard extends StatelessWidget {
                                   shouldStar: isStarred.value,
                                 ),
                               );
-                            }else if(starredType == StarredType.fromHome){
+                            } else if (starredType == StarredType.fromHome) {
                               context.read<EmailBloc>().add(
                                 IstarrEventHome(
                                   messageId: email.id,
                                   shouldStar: isStarred.value,
                                 ),
                               );
-                            }else if(starredType == StarredType.fromSend){
+                            } else if (starredType == StarredType.fromSend) {
                               context.read<SendedEmailBloc>().add(
                                 IstarrEventSended(
                                   messageId: email.id,
                                   shouldStar: isStarred.value,
                                 ),
                               );
-                            }else if(starredType == StarredType.fromSpam){
+                            } else if (starredType == StarredType.fromSpam) {
                               context.read<SpamBloc>().add(
                                 ToggleStarEventSpam(
                                   messageId: email.id,
@@ -382,4 +429,4 @@ class BuildEmaiCard extends StatelessWidget {
   }
 }
 
-enum StarredType { fromStar, fromHome, fromSend, fromSpam,}
+enum StarredType { fromStar, fromHome, fromSend, fromSpam, fromTrash }

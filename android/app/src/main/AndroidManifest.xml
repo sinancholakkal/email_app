@@ -19,7 +19,7 @@
         </intent>
     </queries>
     <application
-        android:label="email_app"
+        android:label="Qmail"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

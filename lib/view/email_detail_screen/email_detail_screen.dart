@@ -15,7 +15,7 @@ class EmailDetailScreen extends StatefulWidget {
 
   const EmailDetailScreen({
     super.key,
-    required this.emailId,
+    required this.emailId, required Email email,
   });
 
   @override
@@ -37,7 +37,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     );
   }
 
-  void _initializeWebView(Email email) {
+  void _initializeWebView(Email email, bool isDark) {
     _controller = WebViewController()
       ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -69,11 +69,19 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           },
         ),
       )
-      ..loadHtmlString(_buildHtmlContent(email));
+      ..loadHtmlString(_buildHtmlContent(email, isDark));
   }
   
 
-  String _buildHtmlContent(Email email) {
+  String _buildHtmlContent(Email email, bool isDark) {
+    // Dark mode colors
+    final bgColor = isDark ? '#1a1a1a' : '#ffffff';
+    final textColor = isDark ? '#e8eaed' : '#333333';
+    final headerColor = isDark ? '#e8eaed' : '#1a1a1a';
+    final metaColor = isDark ? '#b3b3b3' : '#666666';
+    final borderColor = isDark ? '#404040' : '#e0e0e0';
+    final quoteBg = isDark ? '#2d2d2d' : '#f8f9fa';
+    final codeBg = isDark ? '#2d2d2d' : '#f1f3f4';
     
     return '''
     <!DOCTYPE html>
@@ -87,12 +95,14 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           line-height: 1.6;
           margin: 0;
           padding: 20px;
-          background-color: #ffffff;
-          color: #333333;
+          background-color: $bgColor;
+          color: $textColor;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
         }
         
         .email-header {
-          border-bottom: 1px solid #e0e0e0;
+          border-bottom: 1px solid $borderColor;
           padding-bottom: 20px;
           margin-bottom: 20px;
         }
@@ -100,7 +110,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         .email-subject {
           font-size: 24px;
           font-weight: 600;
-          color: #1a1a1a;
+          color: $headerColor;
           margin-bottom: 16px;
         }
         
@@ -109,16 +119,16 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           flex-wrap: wrap;
           gap: 20px;
           font-size: 14px;
-          color: #666666;
+          color: $metaColor;
         }
         
         .email-from {
           font-weight: 500;
-          color: #1a1a1a;
+          color: $headerColor;
         }
         
         .email-date {
-          color: #666666;
+          color: $metaColor;
         }
         
         .email-body {
@@ -131,7 +141,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         }
         
         .email-body h1, .email-body h2, .email-body h3 {
-          color: #1a1a1a;
+          color: $headerColor;
           margin-top: 24px;
           margin-bottom: 16px;
         }
@@ -156,26 +166,29 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           border-left: 4px solid #1a73e8;
           padding-left: 16px;
           margin: 16px 0;
-          background-color: #f8f9fa;
+          background-color: $quoteBg;
           padding: 16px;
           border-radius: 4px;
+          color: $textColor;
         }
         
         .email-body code {
-          background-color: #f1f3f4;
+          background-color: $codeBg;
           padding: 2px 6px;
           border-radius: 4px;
           font-family: 'Courier New', monospace;
           font-size: 14px;
+          color: $textColor;
         }
         
         .email-body pre {
-          background-color: #f1f3f4;
+          background-color: $codeBg;
           padding: 16px;
           border-radius: 8px;
           overflow-x: auto;
           font-family: 'Courier New', monospace;
           font-size: 14px;
+          color: $textColor;
         }
         
         .email-body table {
@@ -185,64 +198,20 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         }
         
         .email-body th, .email-body td {
-          border: 1px solid #e0e0e0;
+          border: 1px solid $borderColor;
           padding: 12px;
           text-align: left;
+          color: $textColor;
         }
         
         .email-body th {
-          background-color: #f8f9fa;
+          background-color: $quoteBg;
           font-weight: 600;
         }
         
-        .loading {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 200px;
-          font-size: 16px;
-          color: #666666;
-        }
-        
-        .error {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          height: 200px;
-          color: #d93025;
-          text-align: center;
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          body {
-            background-color: #1a1a1a;
-            color: #e8eaed;
-          }
-          
-          .email-subject {
-            color: #e8eaed;
-          }
-          
-          .email-from {
-            color: #e8eaed;
-          }
-          
-          .email-body h1, .email-body h2, .email-body h3 {
-            color: #e8eaed;
-          }
-          
-          .email-body blockquote {
-            background-color: #2d2d2d;
-          }
-          
-          .email-body code, .email-body pre {
-            background-color: #2d2d2d;
-          }
-          
-          .email-body th {
-            background-color: #2d2d2d;
-          }
+        /* Force text visibility */
+        .email-body div, .email-body p, .email-body span {
+          color: $textColor !important;
         }
       </style>
     </head>
@@ -336,7 +305,9 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                   IconButton(
                     icon: Icon(Icons.refresh, color: theme.appBarTheme.foregroundColor),
                     onPressed: () {
-                      _initializeWebView(state.email);
+                     // _initializeWebView(state.email, isDark);
+                       context.read<EmailDetailsBloc>().add(
+      FetchEmailDetailsEvent(emailId: widget.emailId));
                     },
                   ),
                   IconButton(
@@ -469,7 +440,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
             
             // Initialize webview if not already done
             if (_controller == null) {
-              _initializeWebView(email);
+              _initializeWebView(email, isDark);
               isStar.value = email.isStarred;
             }
 
@@ -602,7 +573,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                                 const SizedBox(height: 24),
                                 ElevatedButton.icon(
                                   onPressed: () {
-                                    _initializeWebView(email);
+                                    _initializeWebView(email, isDark);
                                   },
                                   icon: const Icon(Icons.refresh),
                                   label: const Text('Retry'),

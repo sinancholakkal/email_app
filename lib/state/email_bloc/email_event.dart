@@ -13,3 +13,8 @@ class TrashEmailEvent extends EmailEvent{
   final String messageId;
   TrashEmailEvent({required this.messageId});
 }
+class MarkEmailAsReadEvent extends EmailEvent{
+  final String emailId;
+  final int emailIndex;
+  MarkEmailAsReadEvent({required this.emailId, required this.emailIndex});
+}
