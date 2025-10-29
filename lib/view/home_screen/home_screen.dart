@@ -127,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             final email = datas[index];
+           // log(email.date.toString());
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: DismissibleWidget(

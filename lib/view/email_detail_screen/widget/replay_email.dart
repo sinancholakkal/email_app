@@ -86,7 +86,7 @@ class _ReplyEmailScreenState extends State<ReplyEmailScreen> {
 
       if (success) {
          context.read<EmailDetailsBloc>().add(
-      FetchEmailDetailsEvent(emailId: widget.email.id),
+      FetchEmailDetailsEvent(emailId: widget.email.threadId),
     );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

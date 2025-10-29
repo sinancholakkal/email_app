@@ -29,14 +29,25 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
   bool _isWebViewLoading = true;
   bool _hasWebViewError = false;
   ValueNotifier<bool> isStar = ValueNotifier(false);
+  String? _currentEmailId;
 
   @override
   void initState() {
     super.initState();
     // Fetch email details when screen initializes
     context.read<EmailDetailsBloc>().add(
-      FetchEmailDetailsEvent(emailId: widget.emailId),
+      FetchEmailDetailsEvent(emailId: widget.email?.threadId??widget.emailId),
     );
+    // If the caller passed a partial/full Email object, initialize the WebView
+    // immediately with that content so the UI appears responsive while the
+    // details bloc fetches the canonical/latest content in background.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      if (widget.email != null && _controller == null) {
+        _initializeWebView(widget.email!, isDark);
+        isStar.value = widget.email!.isStarred;
+      }
+    });
   }
 
   void _initializeWebView(Email email, bool isDark) {
@@ -72,6 +83,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         ),
       )
       ..loadHtmlString(_buildHtmlContent(email, isDark));
+    _currentEmailId = email.id;
   }
   
 
@@ -387,7 +399,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                     onPressed: () {
                      // _initializeWebView(state.email, isDark);
                        context.read<EmailDetailsBloc>().add(
-      FetchEmailDetailsEvent(emailId: widget.emailId));
+      FetchEmailDetailsEvent(emailId: widget.email?.threadId??widget.emailId));
                     },
                   ),
                   IconButton(
@@ -504,7 +516,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                   ElevatedButton.icon(
                     onPressed: () {
                       context.read<EmailDetailsBloc>().add(
-                        FetchEmailDetailsEvent(emailId: widget.emailId),
+                        FetchEmailDetailsEvent(emailId: widget.email?.threadId??widget.emailId),
                       );
                     },
                     icon: const Icon(Icons.refresh),
@@ -521,6 +533,12 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
             // Initialize webview if not already done
             if (_controller == null) {
               _initializeWebView(email, isDark);
+              isStar.value = email.isStarred;
+            } else if (_currentEmailId != email.id) {
+              // Update displayed content when the loaded details differ from
+              // the currently shown email (e.g. more complete body arrived).
+              _controller!.loadHtmlString(_buildHtmlContent(email, isDark));
+              _currentEmailId = email.id;
               isStar.value = email.isStarred;
             }
 
