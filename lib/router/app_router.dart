@@ -1,4 +1,3 @@
-import 'package:email_app/view/email_detail_screen/email_detail_screen.dart';
 import 'package:email_app/view/home_screen/home_screen.dart';
 import 'package:email_app/view/login_screen/login_screen.dart';
 import 'package:email_app/view/privacy_policy_screen/privacy_policy_screen.dart';

@@ -12,10 +12,12 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class EmailDetailScreen extends StatefulWidget {
   final String emailId;
+  final Email? email;
 
   const EmailDetailScreen({
     super.key,
-    required this.emailId, required Email email,
+    required this.emailId,
+    this.email,
   });
 
   @override
@@ -80,8 +82,6 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     final headerColor = isDark ? '#e8eaed' : '#1a1a1a';
     final metaColor = isDark ? '#b3b3b3' : '#666666';
     final borderColor = isDark ? '#404040' : '#e0e0e0';
-    final quoteBg = isDark ? '#2d2d2d' : '#f8f9fa';
-    final codeBg = isDark ? '#2d2d2d' : '#f1f3f4';
     
     return '''
     <!DOCTYPE html>
@@ -89,112 +89,141 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          line-height: 1.6;
-          margin: 0;
-          padding: 20px;
-          background-color: $bgColor;
-          color: $textColor;
-          word-wrap: break-word;
-          overflow-wrap: break-word;
+      <script>
+        // Force dark mode on dynamically loaded content
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.addedNodes) {
+              mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) { // ELEMENT_NODE
+                  enforceStyles(node);
+                }
+              });
+            }
+          });
+        });
+        
+        function enforceStyles(element) {
+          if (element.style) {
+            element.style.backgroundColor = 'transparent';
+            element.style.color = '${textColor}';
+          }
+          if (element.tagName === 'IMG') {
+            element.style.filter = '${isDark ? 'brightness(0.8)' : 'none'}';
+          }
+          if (element.children) {
+            Array.from(element.children).forEach(enforceStyles);
+          }
         }
         
+        // Start observing when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+          enforceStyles(document.body);
+        });
+      </script>
+      <style>
+        /* Reset all backgrounds and colors */
+        * {
+          background: none !important;
+          color: inherit !important;
+        }
+        
+        /* Base styles */
+        :root {
+          color-scheme: ${isDark ? 'dark' : 'light'};
+        }
+        
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+          line-height: 1.6 !important;
+          margin: 0 !important;
+          padding: 20px !important;
+          background-color: $bgColor !important;
+          color: $textColor !important;
+          word-wrap: break-word !important;
+          overflow-wrap: break-word !important;
+        }
+        
+        /* Generic element styles */
+        div, p, span, td, th, li, h1, h2, h3, h4, h5, h6 {
+          color: $textColor !important;
+          background-color: transparent !important;
+        }
+        
+        /* Tables */
+        table, tr, td, th {
+          border-color: $borderColor !important;
+          background-color: transparent !important;
+        }
+        
+        /* Override all possible background colors */
+        [style*="background"], [bgcolor], [style*="background-color"] {
+          background-color: transparent !important;
+        }
+        
+        /* Links */
+        a {
+          color: #5B9EFF !important;
+          text-decoration: none !important;
+        }
+        
+        a:hover {
+          text-decoration: underline !important;
+        }
+        
+        /* Images */
+        img {
+          opacity: ${isDark ? '0.8' : '1'} !important;
+          filter: ${isDark ? 'brightness(0.8)' : 'none'} !important;
+        }
+        
+        /* Quotes and code blocks */
+        blockquote, pre, code {
+          background-color: ${isDark ? '#2d2d2d' : '#f5f5f5'} !important;
+          border-color: $borderColor !important;
+          color: $textColor !important;
+        }
+        
+        /* Email-specific elements */
         .email-header {
-          border-bottom: 1px solid $borderColor;
-          padding-bottom: 20px;
-          margin-bottom: 20px;
+          border-bottom: 1px solid $borderColor !important;
+          padding-bottom: 20px !important;
+          margin-bottom: 20px !important;
         }
         
         .email-subject {
-          font-size: 24px;
-          font-weight: 600;
-          color: $headerColor;
-          margin-bottom: 16px;
+          font-size: 24px !important;
+          font-weight: 600 !important;
+          color: $headerColor !important;
+          margin-bottom: 16px !important;
         }
         
         .email-meta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 20px;
-          font-size: 14px;
-          color: $metaColor;
-        }
-        
-        .email-from {
-          font-weight: 500;
-          color: $headerColor;
-        }
-        
-        .email-date {
-          color: $metaColor;
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 20px !important;
+          font-size: 14px !important;
+          color: $metaColor !important;
         }
         
         .email-body {
-          font-size: 16px;
-          line-height: 1.6;
+          font-size: 16px !important;
+          line-height: 1.6 !important;
         }
         
-        .email-body p {
-          margin-bottom: 16px;
+        /* Force text contrast */
+        * {
+          text-shadow: none !important;
         }
         
-        .email-body h1, .email-body h2, .email-body h3 {
-          color: $headerColor;
-          margin-top: 24px;
-          margin-bottom: 16px;
+        /* Handle dynamic content */
+        iframe {
+          filter: ${isDark ? 'invert(1) hue-rotate(180deg)' : 'none'} !important;
         }
-        
-        .email-body a {
-          color: #1a73e8;
-          text-decoration: none;
-        }
-        
-        .email-body a:hover {
-          text-decoration: underline;
-        }
-        
-        .email-body img {
-          max-width: 100%;
-          height: auto;
-          border-radius: 8px;
-          margin: 16px 0;
-        }
-        
-        .email-body blockquote {
-          border-left: 4px solid #1a73e8;
-          padding-left: 16px;
-          margin: 16px 0;
-          background-color: $quoteBg;
-          padding: 16px;
-          border-radius: 4px;
-          color: $textColor;
-        }
-        
-        .email-body code {
-          background-color: $codeBg;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-family: 'Courier New', monospace;
-          font-size: 14px;
-          color: $textColor;
-        }
-        
-        .email-body pre {
-          background-color: $codeBg;
-          padding: 16px;
-          border-radius: 8px;
-          overflow-x: auto;
-          font-family: 'Courier New', monospace;
-          font-size: 14px;
-          color: $textColor;
-        }
-        
-        .email-body table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 16px 0;
         }
         
         .email-body th, .email-body td {
@@ -205,13 +234,64 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         }
         
         .email-body th {
-          background-color: $quoteBg;
+          background-color: ${isDark ? '#2d2d2d' : '#f8f9fa'};
           font-weight: 600;
         }
         
-        /* Force text visibility */
-        .email-body div, .email-body p, .email-body span {
+        /* Force text visibility - comprehensive selector to override email styles */
+        .email-body * {
           color: $textColor !important;
+          background-color: transparent !important;
+          opacity: 1 !important;
+          text-shadow: none !important;
+        }
+        
+        /* Override inline styles on all text elements */
+        .email-body div,
+        .email-body p,
+        .email-body span,
+        .email-body td,
+        .email-body th,
+        .email-body tr,
+        .email-body li,
+        .email-body ul,
+        .email-body ol,
+        .email-body font,
+        .email-body strong,
+        .email-body b,
+        .email-body em,
+        .email-body i,
+        .email-body u,
+        .email-body h1,
+        .email-body h2,
+        .email-body h3,
+        .email-body h4,
+        .email-body h5,
+        .email-body h6,
+        .email-body label,
+        .email-body small,
+        .email-body text,
+        .email-body tbody,
+        .email-body thead,
+        .email-body tfoot {
+          color: $textColor !important;
+        }
+        
+        /* Keep links visible but distinct */
+        .email-body a {
+          color: #1a73e8 !important;
+          text-decoration: none !important;
+        }
+        
+        .email-body a:hover {
+          text-decoration: underline !important;
+        }
+        
+        /* Ensure images remain visible */
+        .email-body img {
+          opacity: 1 !important;
+          filter: none !important;
+          max-width: 100% !important;
         }
       </style>
     </head>
@@ -514,6 +594,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
                       if (_controller != null)
                         Container(
                           padding: const EdgeInsets.all(16),
+                          color: isDark ? const Color(0xFF1a1a1a) : Colors.white,
                           child: WebViewWidget(controller: _controller!),
                         ),
                       
