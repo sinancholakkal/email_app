@@ -9,6 +9,7 @@ import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/starred_bloc/starred_bloc.dart';
 import 'package:email_app/state/trash/trash_bloc.dart';
 import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
+import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
 import 'package:email_app/view/email_detail_screen/email_detail_screen.dart';
 import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:email_app/view/home_screen/data/data.dart';

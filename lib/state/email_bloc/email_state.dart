@@ -17,3 +17,9 @@ class LoadedDataState extends EmailState{
     List<Email>datas;
     LoadedDataState({required this.datas,required this.isLoading});
 }
+class AllEmailsErrorState extends EmailState{
+  final String error;
+
+  AllEmailsErrorState({required this.error});
+  
+}
