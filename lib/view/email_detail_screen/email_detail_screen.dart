@@ -9,6 +9,7 @@ import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EmailDetailScreen extends StatefulWidget {
   final String emailId;
@@ -56,6 +57,39 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          // Intercept navigation requests so we can handle non-http schemes
+          onNavigationRequest: (NavigationRequest request) {
+            final url = request.url;
+            try {
+              final uri = Uri.parse(url);
+              final scheme = uri.scheme.toLowerCase();
+
+              // Allow normal web links to load in the WebView
+              if (scheme == 'http' || scheme == 'https') {
+                return NavigationDecision.navigate;
+              }
+
+              // Handle common external schemes by launching the appropriate app
+              if (scheme == 'mailto' || scheme == 'tel' || scheme == 'sms' || scheme == 'geo') {
+                // Launch externally; prevent WebView navigation
+                launchUrl(uri, mode: LaunchMode.externalApplication);
+                return NavigationDecision.prevent;
+              }
+
+              // Data URIs can be displayed in the WebView
+              if (scheme == 'data') {
+                return NavigationDecision.navigate;
+              }
+
+              // Block or handle other unknown schemes (cid:, intent:, javascript:, etc.)
+              log('Blocked navigation to unsupported scheme: $scheme -> $url');
+              return NavigationDecision.prevent;
+            } catch (e) {
+              log('Invalid navigation URL: $url ($e)');
+              return NavigationDecision.prevent;
+            }
+          },
+
           onPageStarted: (String url) {
             if (mounted) {
               setState(() {
@@ -72,13 +106,31 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
             }
           },
           onWebResourceError: (WebResourceError error) {
+            // Ignore some benign errors that occur when pages include
+            // non-http(s) schemes (intent:, cid:, mailto: in resources, etc.)
+            final desc = error.description.toLowerCase();
+            if (desc.contains('net::err_blocked_by_orb') ||
+                desc.contains('err_blocked_by_orb')) {
+              log('WebView ORB Error (ignored): ${error.url}');
+              return;
+            }
+
+            // Ignore unknown URL scheme errors (these are common when email
+            // HTML contains cid:, intent:, or other non-web schemes used by
+            // mail clients). We prevent showing the full error UI for these.
+            if (desc.contains('err_unknown_url_scheme') || desc.contains('unknown_url_scheme')) {
+              log('WebView unknown url scheme (ignored): ${error.url} - ${error.description}');
+              return;
+            }
+
+            // For any other, more serious error, set the error state.
+            log('WebView error: ${error.description}');
             if (mounted) {
               setState(() {
                 _isWebViewLoading = false;
                 _hasWebViewError = true;
               });
             }
-            log('WebView error: ${error.description}');
           },
         ),
       )
@@ -317,11 +369,34 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
       </div>
       
       <div class="email-body">
-        ${email.body.isEmpty ? '<p><em>This email has no content.</em></p>' : email.body}
+        ${email.body.isEmpty ? '<p><em>This email has no content.</em></p>' : _sanitizeHtml(email.body)}
       </div>
     </body>
     </html>
     ''';
+  }
+
+  String _sanitizeHtml(String html) {
+    if (html.isEmpty) return html;
+    var out = html;
+    // Neutralize common unsupported schemes that appear in email HTML.
+    // We handle common literal patterns to avoid complex regex pitfalls.
+    final schemes = ['cid', 'intent', 'javascript', 'vbscript'];
+    for (final s in schemes) {
+      out = out.replaceAll('src="${s}:', 'src="#"');
+      out = out.replaceAll("src='${s}:", "src='#'");
+      out = out.replaceAll('href="${s}:', 'href="#"');
+      out = out.replaceAll("href='${s}:", "href='#'");
+
+      // Uppercase variants sometimes occur in email HTML
+      final S = s.toUpperCase();
+      out = out.replaceAll('src="${S}:', 'src="#"');
+      out = out.replaceAll("src='${S}:", "src='#'");
+      out = out.replaceAll('href="${S}:', 'href="#"');
+      out = out.replaceAll("href='${S}:", "href='#'");
+    }
+
+    return out;
   }
 
   String _escapeHtml(String text) {
@@ -535,8 +610,6 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
               _initializeWebView(email, isDark);
               isStar.value = email.isStarred;
             } else if (_currentEmailId != email.id) {
-              // Update displayed content when the loaded details differ from
-              // the currently shown email (e.g. more complete body arrived).
               _controller!.loadHtmlString(_buildHtmlContent(email, isDark));
               _currentEmailId = email.id;
               isStar.value = email.isStarred;
@@ -740,11 +813,11 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
       ),
     );
   }
-
-  String _getInitials(String email) {
+String _getInitials(String email) {
     if (email.isEmpty) return '?';
     final name = email.split('@').first;
     if (name.isEmpty) return '?';
+    if(name[0] == '"') return name[1].toUpperCase();
     return name[0].toUpperCase();
   }
 

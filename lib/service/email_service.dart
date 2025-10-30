@@ -243,12 +243,13 @@ class EmailService {
   // }
 
   Future<Map<String, dynamic>> fetchInboxEmails({
-    int maxResults = 10,
+    int maxResults = 6,
     String label = "",
     String nextPageToken = "",
     String query = "",
   }) async {
     final accessToken = await TokenService().getAccessToken();
+    log("Access token fetched");
     if (accessToken == null) {
       log("Access Token is null. Cannot fetch threads.");
       return {'emails': <Email>[], 'nextPageToken': ''};
@@ -270,7 +271,7 @@ class EmailService {
       urlString += '&q=${Uri.encodeQueryComponent(query)}';
     }
     Uri url = Uri.parse(urlString);
-
+    log("Going to fetch call API for emails");
     final response = await http.get(
       url,
       headers: {
@@ -278,7 +279,7 @@ class EmailService {
         'Content-Type': 'application/json',
       },
     );
-
+    log("fetched response=================");
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
 
@@ -308,7 +309,13 @@ class EmailService {
   // 2. CHANGE: This new function gets a THREAD, finds its LATEST message,
   // and parses that into your Email model.
   Future<Email?> fetchEmailDetails(String accessToken, String threadId) async {
+    // final String fieldsToGet =
+    //   'messages(id,threadId,snippet,internalDate,labelIds,payload/headers)';
     // Call the threads.get endpoint
+    // final url = Uri.parse(
+    //   'https://gmail.googleapis.com/gmail/v1/users/me/threads/$threadId?fields=$fieldsToGet',
+    // );
+    log("started to call get deails ========================");
     final url = Uri.parse(
       'https://gmail.googleapis.com/gmail/v1/users/me/threads/$threadId',
     );
@@ -319,6 +326,7 @@ class EmailService {
         'Content-Type': 'application/json',
       },
     );
+    log("fetched thread response=================");
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -465,25 +473,24 @@ class EmailService {
     );
   }
 
-DateTime _parseDate(String dateStr) {
-  if (dateStr.isEmpty) return DateTime.now();
+  DateTime _parseDate(String dateStr) {
+    if (dateStr.isEmpty) return DateTime.now();
 
-  try {
-    // This format string matches your date: "Wed, 29 Oct 2025 11:08:17 +0000"
-    // E,     -> Day of week (Wed,)
-    // dd     -> Day in month (29)
-    // MMM    -> Month name (Oct)
-    // yyyy   -> Year (2025)
-    // HH:mm:ss -> Time (11:08:17)
-    // Z      -> Timezone (+0000)
-    final format = DateFormat('E, dd MMM yyyy HH:mm:ss Z');
-    
-    // This will now correctly parse the string
-    return format.parse(dateStr);
-    
-  } catch (e) {
-    log("Error parsing date '$dateStr': $e");
-    return DateTime.now(); // Fallback
+    try {
+      // This format string matches your date: "Wed, 29 Oct 2025 11:08:17 +0000"
+      // E,     -> Day of week (Wed,)
+      // dd     -> Day in month (29)
+      // MMM    -> Month name (Oct)
+      // yyyy   -> Year (2025)
+      // HH:mm:ss -> Time (11:08:17)
+      // Z      -> Timezone (+0000)
+      final format = DateFormat('E, dd MMM yyyy HH:mm:ss Z');
+
+      // This will now correctly parse the string
+      return format.parse(dateStr);
+    } catch (e) {
+      log("Error parsing date '$dateStr': $e");
+      return DateTime.now(); // Fallback
+    }
   }
-}
 }
