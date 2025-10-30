@@ -55,6 +55,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     _controller = WebViewController()
       ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..enableZoom(false)  // Disable zooming to prevent some render issues
       ..setNavigationDelegate(
         NavigationDelegate(
           // Intercept navigation requests so we can handle non-http schemes
@@ -122,6 +123,12 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
               log('WebView unknown url scheme (ignored): ${error.url} - ${error.description}');
               return;
             }
+            
+            // Ignore cleartext errors, as we've enabled cleartext traffic
+            if (desc.contains('err_cleartext_not_permitted')) {
+              log('WebView cleartext not permitted (ignored): ${error.url}');
+              return;
+            }
 
             // For any other, more serious error, set the error state.
             log('WebView error: ${error.description}');
@@ -153,6 +160,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
       <script>
         // Force dark mode on dynamically loaded content
         const observer = new MutationObserver((mutations) => {
