@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "1022858960823-fd21qm2202qmpdm7394o2q9enper5ot1.apps.googleusercontent.com",
+          "client_id": "1022858960823-pabd8pk9f4ffj3aj2cf6hsdgp8vv8ddu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.email_app",
+            "certificate_hash": "187a672df2d435d39614d37f486ada81bd06b879"
+          }
+        },
+        {
+          "client_id": "1022858960823-ueraffihe9c7u6t4iunkal8uo5beebk6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.android.email_app",
@@ -57,6 +65,22 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "1022858960823-2kqbkl9altq33qcvlbgb0p7i7j82t55v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qmail.email_app",
+            "certificate_hash": "d2ea3da823b07b527204d96d52af1b3d89f99057"
+          }
+        },
+        {
+          "client_id": "1022858960823-fd21qm2202qmpdm7394o2q9enper5ot1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qmail.email_app",
+            "certificate_hash": "187a672df2d435d39614d37f486ada81bd06b879"
+          }
+        },
         {
           "client_id": "1022858960823-9th1q1muengmh7hftk1bapv543fcu07i.apps.googleusercontent.com",
           "client_type": 3

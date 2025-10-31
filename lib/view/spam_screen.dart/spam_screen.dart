@@ -50,111 +50,125 @@ class _SendEmailScreenState extends State<SpamScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: theme.appBarTheme.foregroundColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: theme.appBarTheme.backgroundColor,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: theme.appBarTheme.foregroundColor,
+            ),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                context.go('/tabs');
+              }
+            },
           ),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              context.go('/tabs');
-            }
+          title: Text(
+            'Spam',
+            style: TextStyle(
+              color: theme.appBarTheme.foregroundColor,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [SearchIconWidget(theme: theme)],
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            context.read<SpamBloc>().add(RefreshSpamDataEvent());
           },
-        ),
-        title: Text(
-          'Spam',
-          style: TextStyle(
-            color: theme.appBarTheme.foregroundColor,
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-         
-          SearchIconWidget(theme: theme),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          context.read<SpamBloc>().add(RefreshSpamDataEvent());
-        },
-        child: BlocConsumer<SpamBloc, SpamState>(
-          builder: (context, state) {
-            if (state is InitialLoading) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      color: Colors.green[400],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Loading Spam emails...',
+          child: BlocConsumer<SpamBloc, SpamState>(
+            builder: (context, state) {
+              if (state is InitialLoading) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Colors.green[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Loading Spam emails...',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              if (datas.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text(
+                      'No Spam emails found.',
                       style: TextStyle(
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.grey[600],
+                        fontSize: 16,
                       ),
                     ),
-                  ],
-                ),
-              );
-            }
+                  ),
+                );
+              }
+              return ListView.builder(
+                controller: _controller,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(top: 8, bottom: 100),
+                itemCount: datas.length + (isLoading ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == datas.length) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.blue[400],
+                        ),
+                      ),
+                    );
+                  }
 
-            return ListView.builder(
-          controller: _controller,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(top: 8, bottom: 100),
-          itemCount: datas.length + (isLoading ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == datas.length) {
-              return Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Center(
-                  child: CircularProgressIndicator(color: Colors.blue[400]),
-                ),
-              );
-            }
-
-            final email = datas[index];
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: DismissibleWidget(
-                email: email,
-                onDelete: () {
-                  log("Delete pressed");
-                  context.read<SpamBloc>().add(TrashEmailEventSpam(messageId: email.id));
-                  context.pop();
+                  final email = datas[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    child: DismissibleWidget(
+                      email: email,
+                      onDelete: () {
+                        log("Delete pressed");
+                        context.read<SpamBloc>().add(
+                          TrashEmailEventSpam(messageId: email.id),
+                        );
+                        context.pop();
+                      },
+                      child: BuildEmaiCard(
+                        starredType: StarredType.fromSpam,
+                        email: email,
+                        index: index,
+                        enableAnimation: index < 5,
+                      ),
+                    ),
+                  );
                 },
-                child: BuildEmaiCard(
-                  
-                  starredType: StarredType.fromSpam,
-                  email: email,
-                  index: index,
-                  enableAnimation: index < 5,
-                ),
-              ),
-            );
-          },
-        );
-          },
-          listener: (context, state) {
-            if (state is MoreDataLoading) {
-              isLoading = state.isLoading;
-            } else if (state is LoadedDataState) {
-              isLoading = state.isLoading;
-              datas = state.datas;
-            }
-          },
+              );
+            },
+            listener: (context, state) {
+              if (state is MoreDataLoading) {
+                isLoading = state.isLoading;
+              } else if (state is LoadedDataState) {
+                isLoading = state.isLoading;
+                datas = state.datas;
+              }
+            },
+          ),
         ),
       ),
-    ),
     );
   }
 

@@ -103,6 +103,20 @@ class _SendEmailScreenState extends State<SendEmailScreen> {
                   ),
                 );
               }
+               if (datas.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text(
+                      'No sent emails available.',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.grey[600],
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                );
+              }
 
               return ListView.builder(
                 controller: _controller,

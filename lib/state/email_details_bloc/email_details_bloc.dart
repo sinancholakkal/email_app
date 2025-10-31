@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:email_app/model/email_model.dart';
 import 'package:email_app/service/email_service.dart';
@@ -25,6 +27,7 @@ class EmailDetailsBloc extends Bloc<EmailDetailsEvent, EmailDetailsState> {
     try {
       final accessToken = await TokenService().getAccessToken();
       if (accessToken == null) {
+        log('Authentication required');
         emit(EmailDetailsError(message: 'Authentication required'));
         return;
       }
