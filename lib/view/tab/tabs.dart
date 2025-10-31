@@ -1,8 +1,10 @@
 import 'dart:ui';
+import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/view/email_sender_screen/email_sender_screen.dart';
 import 'package:email_app/view/home_screen/drawer/home_drawer.dart';
 import 'package:email_app/view/home_screen/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Tabs extends StatefulWidget {
   const Tabs({super.key});
@@ -28,7 +30,7 @@ class _TabsState extends State<Tabs> with SingleTickerProviderStateMixin {
     _animationController.forward();
     
     _pages = [
-      HomeScreen(scaffoldKey: _scaffoldKey),
+      BlocProvider(create: (context) => EmailBloc(), child: HomeScreen(scaffoldKey: _scaffoldKey)),
       const EmailSenderScreen(),
     ];
   }

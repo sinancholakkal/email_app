@@ -18,11 +18,11 @@ class ReplayEmailService {
     }
 
     final String originalMessageIdHeader =
-        originalEmail.messageIdHeader ?? '<>';
+        originalEmail.messageIdHeader ?? '<>';  
     final String originalReferencesHeader =
         originalEmail.referencesHeader ?? '';
     final String originalSubject = originalEmail.subject;
-    final String replyToAddress = _extractEmailAddress(originalEmail.from);
+    final String replyToAddress = _extractEmailAddress(currentUserEmail);
 
     
     final String replySubject = originalSubject.toLowerCase().startsWith('re:')

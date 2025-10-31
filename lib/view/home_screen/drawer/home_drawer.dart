@@ -1,4 +1,5 @@
 import 'package:email_app/state/auth_bloc/auth_bloc.dart';
+import 'package:email_app/state/email_bloc/email_bloc.dart';
 import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/trash/trash_bloc.dart';
 import 'package:email_app/view/trash_screen/trash_screen.dart';
@@ -527,6 +528,7 @@ class HomeDrawer extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context);
               context.read<AuthBloc>().add(GoogleSignOutEvent());
+              context.read<EmailBloc>().add(RefreshDataEvent());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,

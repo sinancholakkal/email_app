@@ -19,12 +19,13 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
       if (nextPageToken!=null) {
         log("Next page token is not empty*********************************");
         emit(MoreDataLoading(datas: emails, isLoading: true));
-      } else{
+      } else if(nextPageToken==null) {
         log("next page token is empty*********************************");
         emit(InitialLoading());
       }
       try {
-        final datas = await emailService.fetchInboxEmails(
+        if(nextPageToken!=""){
+          final datas = await emailService.fetchInboxEmails(
           nextPageToken: nextPageToken??"",
         );
 
@@ -33,6 +34,9 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
        
         log("nextPageToken: $nextPageToken ==============================================================");
         emit(LoadedDataState(datas: emails, isLoading: false));
+        }else{
+          emit(LoadedDataState(datas: emails, isLoading: false));
+        }
       } catch (e) {
         log(e.toString());
         //emit(AllEmailsErrorState(error: e.toString()));
