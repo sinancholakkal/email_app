@@ -40,13 +40,18 @@ class BuildEmaiCard extends StatelessWidget {
     final avatarColor = AppColors.getEmailAvatarColor(senderEmail);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    if(senderEmail.contains("<no-reply")){
-      title = senderEmail.split('@').first.replaceAll("<no-reply", "").trim();
-    }else if(senderEmail.contains("<noreply")){
-      title = senderEmail.split('@').first.replaceAll("<noreply", "").trim();
-    }else{
-      title = senderEmail.split('@').first.trim();
-    }
+    // if(senderEmail.contains("<no-reply")){
+    //   title = senderEmail.split('@').first.replaceAll("<no-reply", "").trim();
+    // }else if(senderEmail.contains("<noreply")){
+    //   title = senderEmail.split('@').first.replaceAll("<noreply", "").trim();
+    // }
+    // else if(senderEmail.contains("<donotreply")){
+    //   title = senderEmail.split('@').first.replaceAll("<donotreply", "").trim();
+    // }
+    // else{
+    //   title = senderEmail.split('@').first.trim();
+    // }
+    title = senderEmail.split('<').first.trim();
     ValueNotifier<bool> isStarred = ValueNotifier(email.isStarred);
 
     // Only animate first few items, or if explicitly enabled

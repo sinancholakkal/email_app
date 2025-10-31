@@ -41,13 +41,13 @@ class CustomInputField extends StatelessWidget {
         hintStyle: TextStyle(
           color: isDark ? Colors.grey[600] : Colors.grey[400],
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
+        // border: OutlineInputBorder(
+        //   borderRadius: BorderRadius.circular(12),
+        //   // borderSide: BorderSide.none,
+        // ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+        
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -55,7 +55,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     _controller = WebViewController()
       ..setBackgroundColor(Colors.transparent)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..enableZoom(false)  // Disable zooming to prevent some render issues
+      ..enableZoom(true)  // Disable zooming to prevent some render issues
       ..setNavigationDelegate(
         NavigationDelegate(
           // Intercept navigation requests so we can handle non-http schemes
@@ -155,7 +155,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
     final borderColor = isDark ? '#404040' : '#e0e0e0';
     
     return '''
-    <!DOCTYPE html>
+    <!DOCTYPE html> 
     <html>
     <head>
       <meta charset="UTF-8">
@@ -196,6 +196,26 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           });
           enforceStyles(document.body);
         });
+document.addEventListener("DOMContentLoaded", () => {
+        const body = document.body;
+        
+        // This line centers the content
+        body.style.margin = "0 auto"; 
+        
+        // This line is good
+        body.style.overflowX = "hidden";
+
+        // I HAVE REMOVED body.style.width and body.style.maxWidth
+        // They were preventing the centering.
+        
+        // This part for tables is great, keep it
+        const tables = body.getElementsByTagName("table");
+        for (let i = 0; i < tables.length; i++) {
+          tables[i].style.width = "100%";
+          tables[i].style.maxWidth = "100%";
+        }
+      });
+
       </script>
       <style>
         /* Reset all backgrounds and colors */
@@ -212,7 +232,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
           line-height: 1.6 !important;
-          margin: 0 !important;
+          margin: 0;
           padding: 20px !important;
           background-color: $bgColor !important;
           color: $textColor !important;
@@ -268,7 +288,7 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         }
         
         .email-subject {
-          font-size: 24px !important;
+          font-size: 30px !important;
           font-weight: 600 !important;
           color: $headerColor !important;
           margin-bottom: 16px !important;
@@ -278,12 +298,12 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           display: flex !important;
           flex-wrap: wrap !important;
           gap: 20px !important;
-          font-size: 14px !important;
+          font-size: 18px !important;
           color: $metaColor !important;
         }
         
         .email-body {
-          font-size: 16px !important;
+          font-size: 30px !important;
           line-height: 1.6 !important;
         }
         
@@ -296,14 +316,9 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
         iframe {
           filter: ${isDark ? 'invert(1) hue-rotate(180deg)' : 'none'} !important;
         }
-        }
         
-        .email-body th, .email-body td {
-          border: 1px solid $borderColor;
-          padding: 12px;
-          text-align: left;
-          color: $textColor;
-        }
+        
+   
         
         .email-body th {
           background-color: ${isDark ? '#2d2d2d' : '#f8f9fa'};
@@ -317,6 +332,23 @@ class _EmailDetailScreenState extends State<EmailDetailScreen> {
           opacity: 1 !important;
           text-shadow: none !important;
         }
+
+        /* Center all email content */
+html, body {
+  margin: 0 auto !important;
+  max-width: 100% !important;
+  text-align: left !important;
+  zoom: 0.75 !important; /* adjust zoom level if needed (0.8–1.0) */
+}
+
+/* Ensure all inner containers fit screen width */
+.email-body table,
+.email-body div,
+.email-body p {
+  margin: 0 auto !important;
+  max-width: 100% !important;
+  width: auto !important;
+}
         
         /* Override inline styles on all text elements */
         .email-body div,
