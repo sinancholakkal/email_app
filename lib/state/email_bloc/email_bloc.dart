@@ -13,21 +13,25 @@ part 'email_state.dart';
 class EmailBloc extends Bloc<EmailEvent, EmailState> {
   final emailService = EmailService();
   List<Email> emails = [];
-  String nextPageToken = "";
+  String? nextPageToken;
   EmailBloc() : super(EmailInitial()) {
     on<LoadDataEvent>((event, emit) async {
-      if (nextPageToken.isNotEmpty) {
+      if (nextPageToken!=null) {
+        log("Next page token is not empty*********************************");
         emit(MoreDataLoading(datas: emails, isLoading: true));
-      } else {
+      } else{
+        log("next page token is empty*********************************");
         emit(InitialLoading());
       }
       try {
         final datas = await emailService.fetchInboxEmails(
-          nextPageToken: nextPageToken,
+          nextPageToken: nextPageToken??"",
         );
 
         emails.addAll(datas['emails']);
         nextPageToken = datas['nextPageToken'];
+       
+        log("nextPageToken: $nextPageToken ==============================================================");
         emit(LoadedDataState(datas: emails, isLoading: false));
       } catch (e) {
         log(e.toString());

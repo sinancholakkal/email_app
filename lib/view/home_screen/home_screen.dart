@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<EmailBloc>().add(LoadDataEvent());
     _controller = ScrollController();
     _controller.addListener(() {
-      if (_controller.position.maxScrollExtent * 0.4 <=
+      if (_controller.position.maxScrollExtent * 0.8 <=
               _controller.position.pixels &&
           !isLoading) {
         log("Loading more data");

@@ -19,7 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class BuildEmaiCard extends StatelessWidget {
-  const BuildEmaiCard({
+   BuildEmaiCard({
     super.key,
     required this.email,
     required this.index,
@@ -30,14 +30,23 @@ class BuildEmaiCard extends StatelessWidget {
   final Email email;
   final int index;
   final bool enableAnimation;
-
+   String title = "";
   @override
   Widget build(BuildContext context) {
+    
     final senderEmail = email.from;
+    
     final initials = getInitials(senderEmail);
     final avatarColor = AppColors.getEmailAvatarColor(senderEmail);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    if(senderEmail.contains("<no-reply")){
+      title = senderEmail.split('@').first.replaceAll("<no-reply", "").trim();
+    }else if(senderEmail.contains("<noreply")){
+      title = senderEmail.split('@').first.replaceAll("<noreply", "").trim();
+    }else{
+      title = senderEmail.split('@').first.trim();
+    }
     ValueNotifier<bool> isStarred = ValueNotifier(email.isStarred);
 
     // Only animate first few items, or if explicitly enabled
@@ -86,7 +95,7 @@ class BuildEmaiCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -139,7 +148,7 @@ class BuildEmaiCard extends StatelessWidget {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               children: [
                 Row(
@@ -217,7 +226,7 @@ class BuildEmaiCard extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   //Sender Email-----------
-                                  senderEmail.split('@').first,
+                                  title??"",
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
@@ -259,80 +268,29 @@ class BuildEmaiCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           //Subject-----------
-                          Text(
-                            email.subject.isEmpty
-                                ? 'No Subject'
-                                : email.subject,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: email.isUnread == false
-                                  ? Colors.grey
-                                  : isDark
-                                  ? Colors.grey[300]
-                                  : Colors.black87,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          // Text(
-                          //   getEmailPreview(email.body),
-                          //   style: TextStyle(
-                          //     fontSize: 13,
-                          //     color: isDark
-                          //         ? Colors.grey[500]
-                          //         : Colors.grey[600],
-                          //     height: 1.4,
-                          //   ),
-                          //   maxLines: 2,
-                          //   overflow: TextOverflow.ellipsis,
-                          // ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Action buttons row
-                Row(
-                  children: [
-                    // Labels
-                    if (email.labelIds.contains('PROMOTIONS'))
-                      _buildLabel('Promotions', Colors.orange, isDark),
-                    const Spacer(),
-                    _buildActionButton(
-                      icon: Icons.reply_rounded,
-                      isDark: isDark,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ReplyEmailScreen(email: email),
-                          ),
-                        );
-                        log('Reply to: ${email.subject}');
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    _buildActionButton(
-                      icon: Icons.delete,
-                      isDark: isDark,
-                      onTap: () {
-                        log('Archive: ${email.subject}');
-                        deleteDialog(context, () {
-                          context.read<EmailBloc>().add(
-                            TrashEmailEvent(messageId: email.id),
-                          );
-                          log('Delete: ${email.subject}');
-                          context.pop();
-                        });
-                      },
-                    ),
-                    //Stared==================
-                    const SizedBox(width: 8),
-                    ValueListenableBuilder(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width - 180,
+                                child: Text(
+                                  email.subject.isEmpty
+                                      ? 'No Subject'
+                                      : email.subject,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: email.isUnread == false
+                                        ? Colors.grey
+                                        : isDark
+                                        ? Colors.grey[300]
+                                        : Colors.black87,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              ValueListenableBuilder(
                       valueListenable: isStarred,
                       builder: (context, value, child) {
                         return _buildActionButton(
@@ -375,9 +333,112 @@ class BuildEmaiCard extends StatelessWidget {
                           },
                         );
                       },
+                    )
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          // Text(
+                          //   getEmailPreview(email.body),
+                          //   style: TextStyle(
+                          //     fontSize: 13,
+                          //     color: isDark
+                          //         ? Colors.grey[500]
+                          //         : Colors.grey[600],
+                          //     height: 1.4,
+                          //   ),
+                          //   maxLines: 2,
+                          //   overflow: TextOverflow.ellipsis,
+                          // ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                // Action buttons row
+                // Row(
+                //   children: [
+                //     // Labels
+                //     if (email.labelIds.contains('PROMOTIONS'))
+                //       _buildLabel('Promotions', Colors.orange, isDark),
+                //     const Spacer(),
+                //     _buildActionButton(
+                //       icon: Icons.reply_rounded,
+                //       isDark: isDark,
+                //       onTap: () {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) =>
+                //                 ReplyEmailScreen(email: email),
+                //           ),
+                //         );
+                //         log('Reply to: ${email.subject}');
+                //       },
+                //     ),
+                //     const SizedBox(width: 8),
+                //     _buildActionButton(
+                //       icon: Icons.delete,
+                //       isDark: isDark,
+                //       onTap: () {
+                //         log('Archive: ${email.subject}');
+                //         deleteDialog(context, () {
+                //           context.read<EmailBloc>().add(
+                //             TrashEmailEvent(messageId: email.id),
+                //           );
+                //           log('Delete: ${email.subject}');
+                //           context.pop();
+                //         });
+                //       },
+                //     ),
+                //     //Stared==================
+                //     const SizedBox(width: 8),
+                //     ValueListenableBuilder(
+                //       valueListenable: isStarred,
+                //       builder: (context, value, child) {
+                //         return _buildActionButton(
+                //           icon: value
+                //               ? Icons.star_rounded
+                //               : Icons.star_border_rounded,
+                //           isDark: isDark,
+                //           onTap: () {
+                //             isStarred.value = !value;
+                //             if (starredType == StarredType.fromStar) {
+                //               context.read<StarredBloc>().add(
+                //                 ToggleStarEvent(
+                //                   messageId: email.id,
+                //                   shouldStar: isStarred.value,
+                //                 ),
+                //               );
+                //             } else if (starredType == StarredType.fromHome) {
+                //               context.read<EmailBloc>().add(
+                //                 IstarrEventHome(
+                //                   messageId: email.id,
+                //                   shouldStar: isStarred.value,
+                //                 ),
+                //               );
+                //             } else if (starredType == StarredType.fromSend) {
+                //               context.read<SendedEmailBloc>().add(
+                //                 IstarrEventSended(
+                //                   messageId: email.id,
+                //                   shouldStar: isStarred.value,
+                //                 ),
+                //               );
+                //             } else if (starredType == StarredType.fromSpam) {
+                //               context.read<SpamBloc>().add(
+                //                 ToggleStarEventSpam(
+                //                   messageId: email.id,
+                //                   shouldSpam: isStarred.value,
+                //                 ),
+                //               );
+                //             }
+                //             log('Star: ${email.subject}');
+                //           },
+                //         );
+                //       },
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),

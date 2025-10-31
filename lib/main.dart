@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         title: 'Email App',
-        themeMode: ThemeMode.dark, 
+        themeMode: ThemeMode.light, 
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         routerConfig: appRouter,

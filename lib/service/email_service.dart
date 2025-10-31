@@ -302,7 +302,7 @@ class EmailService {
     } else {
       log('Failed to fetch thread IDs. Status: ${response.statusCode}');
       log('Response: ${response.body}');
-      return {'emails': <Email>[], 'nextPageToken': ''};
+      return {'emails': <Email>[], 'nextPageToken':''};
     }
   }
 
@@ -451,7 +451,9 @@ class EmailService {
       isHtml = payload['mimeType'] == 'text/html';
       decodedBody = utf8.decode(base64Url.decode(payload['body']['data']));
     }
+    
     log(dateStr);
+    log(subject);
     final DateTime date = _parseDate(dateStr);
     log(date.toString());
     return Email(
