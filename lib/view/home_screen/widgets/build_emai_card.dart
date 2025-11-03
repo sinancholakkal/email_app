@@ -9,14 +9,10 @@ import 'package:email_app/state/spam_bloc/spam_bloc.dart';
 import 'package:email_app/state/starred_bloc/starred_bloc.dart';
 import 'package:email_app/state/trash/trash_bloc.dart';
 import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
-import 'package:email_app/state/email_details_bloc/email_details_bloc.dart';
 import 'package:email_app/view/email_detail_screen/email_detail_screen.dart';
-import 'package:email_app/view/email_detail_screen/widget/replay_email.dart';
 import 'package:email_app/view/home_screen/data/data.dart';
-import 'package:email_app/view/widgets/delete_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class BuildEmaiCard extends StatelessWidget {
    BuildEmaiCard({

@@ -64,7 +64,7 @@ class EmailBloc extends Bloc<EmailEvent, EmailState> {
     on<RefreshDataEvent>((event, emit) async {
       emit(InitialLoading());
       emails.clear();
-      nextPageToken = "";
+      nextPageToken =null;
       add(LoadDataEvent());
     });
 
