@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:email_app/constants/app_string.dart';
 import 'package:email_app/service/auth_service.dart';
+import 'package:email_app/service/token_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -249,12 +252,14 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2500));
     if (!mounted) return;
     
-    final userUid = await AuthService().getCurrentUserUid();
+    final accessToken = await TokenService().storage.read(key: TokenService().accessTokenKey);
     if (!mounted) return;
     
-    if (userUid != null) {
+    if (accessToken != null) {
+      log("Access token is not null---------------------------");
       context.go('/tabs');
     } else {
+      log("Access token is null---------------------------");
       context.go('/login');
     }
   }
