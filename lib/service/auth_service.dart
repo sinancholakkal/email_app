@@ -7,11 +7,10 @@
 // class AuthService {
 //   final GoogleSignIn _googleSignIn = GoogleSignIn(
 //     scopes: [
-//       'email', 
-//       'https://mail.google.com/', 
+//       'email',
+//       'https://mail.google.com/',
 //     ],
 //   );
-
 
 //   Future<GoogleSignInAccount?> signInWithGoogle() async {
 //     try {
@@ -20,7 +19,7 @@
 //       if(account!=null){
 //         log(  'Google Sign-In successful: ${account.email}');
 //          final GoogleSignInAuthentication googleAuth = await account.authentication;
-//         final String? accessToken = googleAuth.accessToken; 
+//         final String? accessToken = googleAuth.accessToken;
 //         log("============================================");
 //         log(accessToken.toString());
 //       }else{
@@ -30,8 +29,8 @@
 //     }on FirebaseAuthException catch (e) {
 //       log('Firebase Exception during Google Sign-In: ${e.message}');
 //       return null;
-//     } 
-    
+//     }
+
 //     catch (error) {
 //       log('Google Sign-In failed: $error');
 //       return null;
@@ -59,13 +58,10 @@ class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'https://mail.google.com/',
-    ],
+    scopes: ['email', 'https://mail.google.com/'],
   );
 
-  Future<User?> signInWithGoogle() async {
+  Future<GoogleSignInAccount?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
@@ -74,26 +70,24 @@ class AuthService {
         return null;
       }
 
-      
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+      // final AuthCredential credential = GoogleAuthProvider.credential(
+      //   accessToken: googleAuth.accessToken,
+      //   idToken: googleAuth.idToken,
+      // );
       log("Access Token: ${googleAuth.accessToken}");
-      await tokenService.saveAccessToken(googleAuth.accessToken??'');
+      await tokenService.saveAccessToken(googleAuth.accessToken ?? '');
 
-      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-      final User? user = userCredential.user;
+      // final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      // final User? user = userCredential.user;
 
-      if (user != null) {
-        log('Firebase Sign-In successful. UID: ${user.uid}');
-      }
+      // if (user != null) {
+      //   log('Firebase Sign-In successful. UID: ${user.uid}');
+      // }
 
-      return user; 
-
+      return googleUser;
     } on FirebaseAuthException catch (e) {
       log('Firebase Exception during Google Sign-In: ${e.message}');
       return null;
@@ -103,15 +97,37 @@ class AuthService {
     }
   }
 
+  Future<GoogleSignInAccount?> getCurrentUser() async {
+    log("============================================");
+
+    try {
+      final GoogleSignInAccount? account = await _googleSignIn.signInSilently();
+
+      if (account != null) {
+        log("Current User: ${account.displayName}");
+        log("Current User Email: ${account.email}");
+        log("Current User Photo: ${account.photoUrl}");
+        return account;
+      } else {
+        log("No user signed in (signInSilently returned null).");
+        return null;
+      }
+    } catch (error) {
+      log("Error in getCurrentUser (signInSilently): $error");
+      return null;
+    }
+  }
+
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut(); 
-      await _firebaseAuth.signOut(); 
+      await _googleSignIn.signOut();
+      await _firebaseAuth.signOut();
       log('User signed out successfully.');
     } catch (error) {
       log('Google Sign-Out failed: $error');
     }
   }
+
   Future<String?> getCurrentUserUid() async {
     return _firebaseAuth.currentUser?.uid;
   }

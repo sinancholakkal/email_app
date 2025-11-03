@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:email_app/service/auth_service.dart';
 import 'package:email_app/service/token_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meta/meta.dart';
 
 part 'auth_event.dart';
@@ -31,6 +32,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(GoogleSignOutSuccess());
       }catch(e){
         emit(GoogleSignOutFailure(error: 'Error signing out with Google'));
+      }
+    });
+    on<GetCurrentUserEvent>((event, emit)async{
+      emit(GetCurrentUserLoading());
+      try{
+        final user = await authService.getCurrentUser();
+        if(user!=null){
+          emit(GetCurrentUserSuccess(user: user));
+        }else{
+          emit(GetCurrentUserFailure(error: 'User not found'));
+        }
+      }catch(e){
+        emit(GetCurrentUserFailure(error: 'Error getting current user'));
       }
     });
   }
